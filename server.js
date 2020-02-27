@@ -26,11 +26,6 @@ async function connectToDb(){
 }
 
 function defaultSetup(){
-    const periodsRouter = require("./Periods/PeriodsRouter");
-    const userRouter = require("./Users/UserRouter");
-
-    app.use("/api/periods", periodsRouter);
-    app.use("/api/users", userRouter);
     app.use(bodyparser.json());
     
     app.get("/", (req, res) => {res.send('Express is up and running.')});

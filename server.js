@@ -6,7 +6,7 @@ const Sequelize = require('sequelize');
 
 const hostname = 'neokodl';
 const port = '8080';
-const sequelize = new Sequelize('Neokodl', 'root', 'root', {
+const sequelize = new Sequelize('Neokodl', 'neokodladmin', 'admin', {
     host: hostname,
     dialect: 'mssql'
 });
@@ -33,8 +33,8 @@ function defaultSetup(){
     console.log('Successfully connected to database.')
 }
 function errorSetup(err){
-    app.use('*', (req, res) => {res.status(500).send('An error occured.')});
+    app.use('*', (req, res) => {res.status(500).send('This page is currently unavaliable. Please try it later again!')});
     app.listen(port, hostname, () => {
-        console.error('An error occured: ' + err);
+        console.error('Server is up and running but an error occured: ' + err);
     });
 }

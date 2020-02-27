@@ -267,6 +267,7 @@ describe(`Testing Users API`, function () {
 });
 
 describe(`Testing Periods API`, function () {
+    //TODO: Delete periods created for testcases after they are used
     //#region Get
     it(`GET SUCCESS - All periods`, function (done) {
         request(app)
@@ -287,15 +288,16 @@ describe(`Testing Periods API`, function () {
                 .get(`/api/periods/${id}`)
                 .expect(200)
                 .end((err, res) => {
-        			deletePeriod(id);
+                    deletePeriod(id)
                     if (err) return done(err);
                     done();
                 });
         })
+
     });
     it(`GET ONE ERROR - One period; not found`, function (done) {
         //TODO: CREATE ONE PERIOD FIRST
-        let id = 404;
+        let id = -1;
         request(app)
             .get(`/api/periods/${id}`)
             .expect(404)
@@ -307,19 +309,20 @@ describe(`Testing Periods API`, function () {
     //#endregion
     //#region Post
     it(`POST ONE SUCCESS - Create one`, function (done) {
+        let idToDelete;
         request(app)
             .post(`/api/periods`)
             .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
             .expect(201)
             .end((err, res) => {
-    			deletePeriod(id);
+                deletePeriod(id);
                 if (err) return done(err);
                 done();
             });
     });
     it(`POST ONE ERROR - Already exists`, function (done) {
         let label = 'AlreadyExistsPeriod';
-        createPeriod((err, returnId) => {
+        createPeriod((err, id) => {
             if (err) {
                 return done(err);
             }
@@ -328,12 +331,13 @@ describe(`Testing Periods API`, function () {
                 .send({ label: label, from: new Date('2020-27-02'), till: new Date('2022-27-03') })
                 .expect(409)
                 .end((err, res) => {
+                    deletePeriod(id);
                     if (err) return done(err);
                     done();
                 });
         }, label);
     });
-    it(`POST ONE ERROR - Invalid input, object invalid`, function (done) {
+    it(`POST ONE ERROR - Wrong amount of arguments`, function (done) {
         request(app)
             .post(`/api/periods`)
             .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000) })
@@ -343,11 +347,147 @@ describe(`Testing Periods API`, function () {
                 done();
             });
     });
-    //#endregiondone
+    it(`POST ONE ERROR - Wrong agruments`, function (done) {
+        request(app)
+            .post(`/api/periods`)
+            .send({ name: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
+            .expect(400)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    //#endregion
     //#region Put
-    
+    it(`PUT SUCCESS`, function (done) {
+        createPeriod((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .put(`/api/periods/${id}`)
+                .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
+                .expect(200)
+                .end((err, res) => {
+                    deletePeriod(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    it(`PUT ERROR - Not found`, function (done) {
+        let id = -1;
+        request(app)
+            .put(`/api/periods/${id}`)
+            .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
+            .expect(400)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`PUT ERROR - Invalid property`, function (done) {
+        createPeriod((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .put(`/api/periods/${id}`)
+                .send({ name: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
+                .expect(400)
+                .end((err, res) => {
+                    deletePeriod(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    it(`PUT ERROR - Too many arguments`, function (done) {
+        createPeriod((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .put(`/api/periods/${id}`)
+                .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03'), duration: '2 years 1 month' })
+                .expect(400)
+                .end((err, res) => {
+                    deletePeriod(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
     //#endregion
     //#region Patch
+    it(`PATCH SUCCESS - One value`, function (done) {
+        createPeriod((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .patch(`/api/periods/${id}`)
+                .send({ label: 'NewTestPeriod' + Math.floor(Math.random() * 1000)})
+                .expect(200)
+                .end((err, res) => {
+                    deletePeriod(id)
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    it(`PATCH SUCCESS - All values`, function (done) {
+        createPeriod((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .patch(`/api/periods/${id}`)
+                .send({ label: 'NewTestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
+                .expect(200)
+                .end((err, res) => {
+                    deletePeriod(id)
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    it(`PATCH ERROR - Invalid id`, function (done) {
+        let id = -1;
+        request(app)
+            .patch(`/api/periods/${id}`)
+            .send({ label: 'NewTestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
+            .expect(400)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`PATCH ERROR - Invalid property`, function (done) {
+        createPeriod((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .patch(`/api/periods/${id}`)
+                .send({ name: 'shouldNotWork' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
+                .expect(400)
+                .end((err, res) => {
+                    deletePeriod(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    it(`PATCH ERROR - Too many arguments`, function (done) {
+        createPeriod((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .patch(`/api/periods/${id}`)
+                .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03'), duration: '2 years 1 month' })
+                .expect(400)
+                .end((err, res) => {
+                    deletePeriod(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
     //#endregion
     //#region Delete
     it(`DELETE SUCCESS - One Period`, function (done) {

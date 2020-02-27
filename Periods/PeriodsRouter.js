@@ -19,35 +19,35 @@ const express = require('express');
 const router = express.Router();
 
 router.get('/', (req, res) => {
-    res.status(500).send("Not implemented");
+    res.status(501).send("Not implemented");
 });
 
 router.get('/:id', (req, res) => {
-    res.status(500).send("Not implemented");
+    res.status(501).send("Not implemented");
 });
 
 router.post('/', (req, res) => {
-    res.status(500).send("Not implemented");
+    res.status(501).send("Not implemented");
 });
 
 router.put('/:id', (req, res) => {
-    res.status(500).send("Not implemented");
+    res.status(501).send("Not implemented");
 });
 
 router.patch('/:id', (req, res) => {
-    res.status(500).send("Not implemented");
+    res.status(501).send("Not implemented");
 });
 
 router.patch('/activate/:id', (req, res) => {
-    res.status(500).send("Not implemented");
+    res.status(501).send("Not implemented");
 });
 
 router.patch('/toggleArchive/:id', (req, res) => {
-    res.status(500).send("Not implemented");
+    res.status(501).send("Not implemented");
 });
 
 router.delete('/:id', (req, res) => {
-    res.status(500).send("Not implemented");
+    res.status(501).send("Not implemented");
 });
 
 module.exports = router;

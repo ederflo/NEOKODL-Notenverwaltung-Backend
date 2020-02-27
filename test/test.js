@@ -19,11 +19,11 @@ describe('Testing Server connection', function () {
     });
 });
 
-describe(`Testing Users API`, function() {
+describe(`Testing Users API`, function () {
     /**
      * GET
      */
-    it(`GET SUCCESS - All users`, function(done) {
+    it(`GET SUCCESS - All users`, function (done) {
         request(app)
             .get('/api/users/id')
             .expect(200)
@@ -32,20 +32,20 @@ describe(`Testing Users API`, function() {
                 done();
             });
     });
-    it(`GET SUCCESS - One user`, function(done) {
+    it(`GET SUCCESS - One user`, function (done) {
         createRandomUser((err, id) => {
             if (err)
                 return done(err);
             request(app)
-            .get(`/api/users/${id}`)
-            .expect(200)
-            .end((err, res) => {
-                if (err) return done(err);
-                done();
-            });
+                .get(`/api/users/${id}`)
+                .expect(200)
+                .end((err, res) => {
+                    if (err) return done(err);
+                    done();
+                });
         });
     });
-    it(`GET ERROR - Invalid id`, function(done) {
+    it(`GET ERROR - Invalid id`, function (done) {
         request(app)
             .get('/api/users/d290f1ee-6c54-4b01-90e6-d701748fffff')
             .expect(404)
@@ -57,40 +57,40 @@ describe(`Testing Users API`, function() {
     /**
      * POST
      */
-    it(`POST SUCCESS`, function(done) {
+    it(`POST SUCCESS`, function (done) {
         request(app)
             .post('/api/users/')
-            .send({username:'CoolGuy', password:'123', email:'co@ol.guy'})
+            .send({ username: 'CoolGuy', password: '123', email: 'co@ol.guy' })
             .expect(201)
             .end((err, res) => {
                 if (err) return done(err);
                 done();
             });
     });
-    it(`POST ERROR - Already exists`, function(done) {
+    it(`POST ERROR - Already exists`, function (done) {
         request(app)
             .post('/api/users/')
-            .send({username:'CoolGuy', password:'123', email:'co@ol.guy'})
+            .send({ username: 'CoolGuy', password: '123', email: 'co@ol.guy' })
             .expect(201)
             .end((err, res) => {
                 if (err) return done(err);
                 done();
             });
     });
-    it(`POST ERROR - Wrong property`, function(done) {
+    it(`POST ERROR - Wrong property`, function (done) {
         request(app)
             .post('/api/users/')
-            .send({name:'CoolGuy', password:'123', email:'co@ol.guy'})
+            .send({ name: 'CoolGuy', password: '123', email: 'co@ol.guy' })
             .expect(400)
             .end((err, res) => {
                 if (err) return done(err);
                 done();
             });
     });
-    it(`POST ERROR - Too many properties`, function(done) {
+    it(`POST ERROR - Too many properties`, function (done) {
         request(app)
             .post('/api/users/')
-            .send({username:'CoolGuy', password:'123', email:'co@ol.guy', age:17})
+            .send({ username: 'CoolGuy', password: '123', email: 'co@ol.guy', age: 17 })
             .expect(400)
             .end((err, res) => {
                 if (err) return done(err);
@@ -100,13 +100,13 @@ describe(`Testing Users API`, function() {
     /**
      * PUT
      */
-    it(`PUT SUCCESS`, function(done) {
+    it(`PUT SUCCESS`, function (done) {
         createRandomUser((err, id) => {
             if (err)
                 return done(err);
             request(app)
                 .put(`/api/users/${id}`)
-                .send({username:'OverWrite', password:'1234', email:'invalid@e.mail'})
+                .send({ username: 'OverWrite', password: '1234', email: 'invalid@e.mail' })
                 .expect(200)
                 .end((err, res) => {
                     if (err) return done(err);
@@ -114,23 +114,23 @@ describe(`Testing Users API`, function() {
                 });
         });
     });
-    it(`PUT ERROR - Invalid id`, function(done) {
+    it(`PUT ERROR - Invalid id`, function (done) {
         request(app)
             .put(`/api/users/d290f1ee-6c54-4b01-90e6-d701748fffff`)
-            .send({username:'ErrorWriteId', password:'error', email:'error@should-not.work'})
+            .send({ username: 'ErrorWriteId', password: 'error', email: 'error@should-not.work' })
             .expect(400)
             .end((err, res) => {
                 if (err) return done(err);
                 done();
             });
     });
-    it(`PUT ERROR - Invalid property`, function(done) {
+    it(`PUT ERROR - Invalid property`, function (done) {
         createRandomUser((err, id) => {
             if (err)
                 return done(err);
             request(app)
                 .put(`/api/users/${id}`)
-                .send({name:'ErrorWriteProp', password:'error', email:'error@should-not.work'})
+                .send({ name: 'ErrorWriteProp', password: 'error', email: 'error@should-not.work' })
                 .expect(400)
                 .end((err, res) => {
                     if (err) return done(err);
@@ -138,13 +138,13 @@ describe(`Testing Users API`, function() {
                 });
         });
     });
-    it(`PUT ERROR - Too many arguments`, function(done) {
+    it(`PUT ERROR - Too many arguments`, function (done) {
         createRandomUser((err, id) => {
             if (err)
                 return done(err);
             request(app)
                 .put(`/api/users/${id}`)
-                .send({username:'ErrorWriteArgs', password:'error', email:'error@should-not.work', age:17})
+                .send({ username: 'ErrorWriteArgs', password: 'error', email: 'error@should-not.work', age: 17 })
                 .expect(400)
                 .end((err, res) => {
                     if (err) return done(err);
@@ -155,13 +155,13 @@ describe(`Testing Users API`, function() {
     /**
      * PATCH
      */
-    it(`PATCH SUCCESS - One value`, function(done) {
+    it(`PATCH SUCCESS - One value`, function (done) {
         createRandomUser((err, id) => {
             if (err)
                 return done(err);
             request(app)
                 .patch(`/api/users/${id}`)
-                .send({username:'OverPatchName'})
+                .send({ username: 'OverPatchName' })
                 .expect(200)
                 .end((err, res) => {
                     if (err) return done(err);
@@ -169,13 +169,13 @@ describe(`Testing Users API`, function() {
                 });
         });
     });
-    it(`PATCH SUCCESS - All values`, function(done) {
+    it(`PATCH SUCCESS - All values`, function (done) {
         createRandomUser((err, id) => {
             if (err)
                 return done(err);
             request(app)
                 .patch(`/api/users/${id}`)
-                .send({username:'OverPatchAll', password:'1234', email:'over@patchworks.com'})
+                .send({ username: 'OverPatchAll', password: '1234', email: 'over@patchworks.com' })
                 .expect(200)
                 .end((err, res) => {
                     if (err) return done(err);
@@ -183,23 +183,23 @@ describe(`Testing Users API`, function() {
                 });
         });
     });
-    it(`PATCH ERROR - Invalid id`, function(done) {
+    it(`PATCH ERROR - Invalid id`, function (done) {
         request(app)
             .patch(`/api/users/d290f1ee-6c54-4b01-90e6-d701748fffff`)
-            .send({username:'PatchWritePatch', password:'error', email:'error@should-not.work'})
+            .send({ username: 'PatchWritePatch', password: 'error', email: 'error@should-not.work' })
             .expect(400)
             .end((err, res) => {
                 if (err) return done(err);
                 done();
             });
     });
-    it(`PATCH ERROR - Invalid property`, function(done) {
+    it(`PATCH ERROR - Invalid property`, function (done) {
         createRandomUser((err, id) => {
             if (err)
                 return done(err);
             request(app)
                 .patch(`/api/users/${id}`)
-                .send({name:'PatchWriteProp', password:'error', email:'error@should-not.work'})
+                .send({ name: 'PatchWriteProp', password: 'error', email: 'error@should-not.work' })
                 .expect(400)
                 .end((err, res) => {
                     if (err) return done(err);
@@ -207,13 +207,13 @@ describe(`Testing Users API`, function() {
                 });
         });
     });
-    it(`PATCH ERROR - Too many arguments`, function(done) {
+    it(`PATCH ERROR - Too many arguments`, function (done) {
         createRandomUser((err, id) => {
             if (err)
                 return done(err);
             request(app)
                 .patch(`/api/users/${id}`)
-                .send({username:'PatchWriteArgs', password:'error', email:'error@should-not.work', age:17})
+                .send({ username: 'PatchWriteArgs', password: 'error', email: 'error@should-not.work', age: 17 })
                 .expect(400)
                 .end((err, res) => {
                     if (err) return done(err);
@@ -224,7 +224,7 @@ describe(`Testing Users API`, function() {
     /**
      * Delete
      */
-    it(`DELETE SUCCESS`, function(done) {
+    it(`DELETE SUCCESS`, function (done) {
         createRandomUser((err, id) => {
             if (err)
                 return done(err);
@@ -237,10 +237,10 @@ describe(`Testing Users API`, function() {
                 });
         });
     });
-    it(`DELETE ERROR - Invalid id`, function(done) {
+    it(`DELETE ERROR - Invalid id`, function (done) {
         request(app)
             .delete(`/api/users/d290f1ee-6c54-4b01-90e6-d701748fffff`)
-            .send({username:'PatchWritePatch', password:'error', email:'error@should-not.work'})
+            .send({ username: 'PatchWritePatch', password: 'error', email: 'error@should-not.work' })
             .expect(400)
             .end((err, res) => {
                 if (err) return done(err);
@@ -263,6 +263,7 @@ describe(`Testing Periods API`, function () {
     });
     it(`GET ONE SUCCESS - One period`, function (done) {
         //TODO: CREATE ONE PERIOD FIRST
+        let idToDelete;
         createPeriod((err, id) => {
             if (err) {
                 return done(err);
@@ -272,9 +273,11 @@ describe(`Testing Periods API`, function () {
                 .expect(200)
                 .end((err, res) => {
                     if (err) return done(err);
+                    idToDelete = id;
                     done();
                 });
         })
+        deletePeriod(idToDelete);
 
     });
     it(`GET ONE ERROR - One period; not found`, function (done) {
@@ -291,18 +294,23 @@ describe(`Testing Periods API`, function () {
     //#endregion
     //#region Post
     it(`POST ONE SUCCESS - Create one`, function (done) {
+        let idToDelete;
         request(app)
             .post(`/api/periods`)
             .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
             .expect(201)
             .end((err, res) => {
                 if (err) return done(err);
+                
+                idToDelete = returnId;
                 done();
             });
+            
+        deletePeriod(idToDelete);
     });
     it(`POST ONE ERROR - Already exists`, function (done) {
         let label = 'AlreadyExistsPeriod';
-        createPeriod((err, id) => {
+        createPeriod((err, returnId) => {
             if (err) {
                 return done(err);
             }
@@ -328,6 +336,7 @@ describe(`Testing Periods API`, function () {
     });
     //#endregion
     //#region Put
+    
     //#endregion
     //#region Patch
     //#endregion
@@ -359,6 +368,15 @@ describe(`Testing Periods API`, function () {
     //#endregion
 });
 
+function deletePeriod(id) {
+    request(app)
+        .delete(`/api/periods/${id}`)
+        .end((err, res) => {
+            if (err) assert.fail(err)
+            done();
+        });
+}
+
 function createPeriod(callback, label) {
     let id;
     if (!label) {
@@ -383,8 +401,8 @@ function createRandomUser(callback) {
     request(app)
         .post('/api/users/')
         .send({
-            username:'RandUser' + Math.floor(Math.random() * 1000), 
-            password:'0000', 
+            username: 'RandUser' + Math.floor(Math.random() * 1000),
+            password: '0000',
             email: 'user@random.org'
         })
         .end((err, res) => {

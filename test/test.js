@@ -19,6 +19,7 @@ describe('Testing Server connection', function () {
     });
 });
 
+// TODO: Too less properties test
 describe(`Testing Users API`, function () {
     /**
      * GET
@@ -40,7 +41,9 @@ describe(`Testing Users API`, function () {
                 .get(`/api/users/${id}`)
                 .expect(200)
                 .end((err, res) => {
-                    if (err) return done(err);
+                    deleteUser(id);
+                    if (err) 
+                    	return done(err);
                     done();
                 });
         });
@@ -109,6 +112,7 @@ describe(`Testing Users API`, function () {
                 .send({ username: 'OverWrite', password: '1234', email: 'invalid@e.mail' })
                 .expect(200)
                 .end((err, res) => {
+                    deleteUser(id);
                     if (err) return done(err);
                     done();
                 });
@@ -133,7 +137,9 @@ describe(`Testing Users API`, function () {
                 .send({ name: 'ErrorWriteProp', password: 'error', email: 'error@should-not.work' })
                 .expect(400)
                 .end((err, res) => {
-                    if (err) return done(err);
+                    deleteUser(id);
+                    if (err) 
+                    	return done(err);
                     done();
                 });
         });
@@ -147,7 +153,9 @@ describe(`Testing Users API`, function () {
                 .send({ username: 'ErrorWriteArgs', password: 'error', email: 'error@should-not.work', age: 17 })
                 .expect(400)
                 .end((err, res) => {
-                    if (err) return done(err);
+                    deleteUser(id);
+                    if (err) 
+                    	return done(err);
                     done();
                 });
         });
@@ -164,7 +172,9 @@ describe(`Testing Users API`, function () {
                 .send({ username: 'OverPatchName' })
                 .expect(200)
                 .end((err, res) => {
-                    if (err) return done(err);
+                    deleteUser(id);
+                    if (err) 
+                    	return done(err);
                     done();
                 });
         });
@@ -178,7 +188,9 @@ describe(`Testing Users API`, function () {
                 .send({ username: 'OverPatchAll', password: '1234', email: 'over@patchworks.com' })
                 .expect(200)
                 .end((err, res) => {
-                    if (err) return done(err);
+                    deleteUser(id);
+                    if (err) 
+                    	return done(err);
                     done();
                 });
         });
@@ -202,7 +214,9 @@ describe(`Testing Users API`, function () {
                 .send({ name: 'PatchWriteProp', password: 'error', email: 'error@should-not.work' })
                 .expect(400)
                 .end((err, res) => {
-                    if (err) return done(err);
+                    deleteUser(id);
+                    if (err) 
+                    	return done(err);
                     done();
                 });
         });
@@ -216,7 +230,9 @@ describe(`Testing Users API`, function () {
                 .send({ username: 'PatchWriteArgs', password: 'error', email: 'error@should-not.work', age: 17 })
                 .expect(400)
                 .end((err, res) => {
-                    if (err) return done(err);
+                    deleteUser(id);
+                    if (err) 
+                    	return done(err);
                     done();
                 });
         });
@@ -232,7 +248,8 @@ describe(`Testing Users API`, function () {
                 .delete(`/api/users/${id}`)
                 .expect(204)
                 .end((err, res) => {
-                    if (err) return done(err);
+                    if (err) 
+                    	return done(err);
                     done();
                 });
         });
@@ -250,7 +267,6 @@ describe(`Testing Users API`, function () {
 });
 
 describe(`Testing Periods API`, function () {
-    //TODO: Delete periods created for testcases after they are used
     //#region Get
     it(`GET SUCCESS - All periods`, function (done) {
         request(app)
@@ -263,7 +279,6 @@ describe(`Testing Periods API`, function () {
     });
     it(`GET ONE SUCCESS - One period`, function (done) {
         //TODO: CREATE ONE PERIOD FIRST
-        let idToDelete;
         createPeriod((err, id) => {
             if (err) {
                 return done(err);
@@ -272,13 +287,11 @@ describe(`Testing Periods API`, function () {
                 .get(`/api/periods/${id}`)
                 .expect(200)
                 .end((err, res) => {
+        			deletePeriod(id);
                     if (err) return done(err);
-                    idToDelete = id;
                     done();
                 });
         })
-        deletePeriod(idToDelete);
-
     });
     it(`GET ONE ERROR - One period; not found`, function (done) {
         //TODO: CREATE ONE PERIOD FIRST
@@ -294,19 +307,15 @@ describe(`Testing Periods API`, function () {
     //#endregion
     //#region Post
     it(`POST ONE SUCCESS - Create one`, function (done) {
-        let idToDelete;
         request(app)
             .post(`/api/periods`)
             .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
             .expect(201)
             .end((err, res) => {
+    			deletePeriod(id);
                 if (err) return done(err);
-                
-                idToDelete = returnId;
                 done();
             });
-            
-        deletePeriod(idToDelete);
     });
     it(`POST ONE ERROR - Already exists`, function (done) {
         let label = 'AlreadyExistsPeriod';
@@ -334,7 +343,7 @@ describe(`Testing Periods API`, function () {
                 done();
             });
     });
-    //#endregion
+    //#endregiondone
     //#region Put
     
     //#endregion
@@ -368,12 +377,21 @@ describe(`Testing Periods API`, function () {
     //#endregion
 });
 
+function deleteUser(id) {
+	request(app)
+		.delete(`/api/users/${id}`)
+		.end((err, res) => {
+			if (err) 
+				assert.fail(err);
+		}); 
+}
+
 function deletePeriod(id) {
     request(app)
         .delete(`/api/periods/${id}`)
         .end((err, res) => {
-            if (err) assert.fail(err)
-            done();
+            if (err)
+            	assert.fail(err);
         });
 }
 

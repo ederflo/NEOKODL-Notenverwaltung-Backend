@@ -16,36 +16,18 @@ DELETE  |   /:id
 const express = require('express');
 const router = express.Router();
 
-router.get('/', (req, res) => {
-    res.status(500).send("Not implemented");
-});
 
-router.get('/:id', (req, res) => {
-    res.status(500).send("Not implemented");
-});
-
-router.post('/', (req, res) => {
-    res.status(500).send("Not implemented");
-});
-
-router.put('/:id', (req, res) => {
-    res.status(500).send("Not implemented");
-});
-
-router.patch('/:id', (req, res) => {
-    res.status(500).send("Not implemented");
-});
-
-router.patch('/activate/:id', (req, res) => {
-    res.status(500).send("Not implemented");
-});
-
-router.patch('/toggleArchive/:id', (req, res) => {
-    res.status(500).send("Not implemented");
-});
-
-router.delete('/:id', (req, res) => {
-    res.status(500).send("Not implemented");
-});
+router.get('/', notImplemented);
+router.get('/:id', notImplemented);
+router.post('/', notImplemented);
+router.put('/:id', notImplemented);
+router.patch('/:id', notImplemented);
+router.delete('/:id', notImplemented);
+router.patch('/activate/:id', notImplemented);
+router.patch('/toggleArchive/:id', notImplemented);
 
 module.exports = router;
+
+function notImplemented(req, res) {
+    res.status(501).send(`Sog dem Dome er soll endlich ${req.method} implementieren!`);
+}

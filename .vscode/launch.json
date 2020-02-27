@@ -14,7 +14,7 @@
             "type": "chrome",
             "request": "launch",
             "name": "Launch Chrome",
-            "url": "http://localhost:5000",
+            "url": "http://neokodl.app:8080",
             "webRoot": "${workspaceFolder}"
         },
         {

@@ -3,8 +3,8 @@
 const express = require('express');
 const bodyparser = require('body-parser');
 
-const hostname = "localhost";
-const port = "5000";
+const hostname = "neokodl.app";
+const port = "8080";
 
 const app = express();
 connectToDb();

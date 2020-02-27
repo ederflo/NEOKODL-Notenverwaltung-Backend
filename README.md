@@ -1,4 +1,4 @@
 NEOKODL-Notenverwaltung
 
-hostname: localhost
-port: 5000
+hostname: neokodl.app
+port: 8080

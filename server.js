@@ -38,3 +38,5 @@ function errorSetup(err){
         console.error('Server is up and running but an error occured: ' + err);
     });
 }
+
+module.exports = app;

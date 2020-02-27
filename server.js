@@ -3,7 +3,7 @@
 const express = require('express');
 const bodyparser = require('body-parser');
 
-const hostname = "neokodl.app";
+const hostname = "neokodl";
 const port = "8080";
 
 const app = express();

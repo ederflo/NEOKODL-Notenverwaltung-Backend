@@ -4,12 +4,15 @@ const express = require('express');
 const bodyparser = require('body-parser');
 const Sequelize = require('sequelize');
 
+const fs = require('fs');
+
 const hostname = 'neokodl';
 const port = '8080';
-const sequelize = new Sequelize('Neokodl', 'neokodladmin', 'admin', {
-    host: hostname,
-    dialect: 'mssql'
-});
+const dbConfigFilePath = './Configs/dbConfig.json';
+
+const dbConfig = JSON.parse(fs.readFileSync(dbConfigFilePath));
+
+const sequelize = new Sequelize(dbConfig.database, dbConfig.user, dbConfig.password, dbConfig.options);
 
 const app = express();
 connectToDb();

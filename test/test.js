@@ -1,5 +1,7 @@
 /**
  * Http tests for http testing
+ * USR - User api
+ * PRD - Period api
  */
 
 const assert = require('assert');
@@ -8,7 +10,7 @@ const app = require('../server');
 const request = require('supertest');
 
 describe('Testing Server connection', function () {
-    it('Should return 200', function (done) {
+    it('Server - Should return 200', function (done) {
         request(app)
             .get('/')
             .expect(200)
@@ -24,7 +26,7 @@ describe(`Testing Users API`, function () {
     /**
      * GET
      */
-    it(`GET SUCCESS - All users`, function (done) {
+    it(`USR-GET SUCCESS - All users`, function (done) {
         request(app)
             .get('/api/users/id')
             .expect(200)
@@ -33,7 +35,7 @@ describe(`Testing Users API`, function () {
                 done();
             });
     });
-    it(`GET SUCCESS - One user`, function (done) {
+    it(`USR-GET SUCCESS - One user`, function (done) {
         createRandomUser((err, id) => {
             if (err)
                 return done(err);
@@ -48,7 +50,7 @@ describe(`Testing Users API`, function () {
                 });
         });
     });
-    it(`GET ERROR - Invalid id`, function (done) {
+    it(`USR-GET ERROR - Invalid id`, function (done) {
         request(app)
             .get('/api/users/d290f1ee-6c54-4b01-90e6-d701748fffff')
             .expect(404)
@@ -60,7 +62,7 @@ describe(`Testing Users API`, function () {
     /**
      * POST
      */
-    it(`POST SUCCESS`, function (done) {
+    it(`USR-POST SUCCESS`, function (done) {
         request(app)
             .post('/api/users/')
             .send({ username: 'CoolGuy', password: '123', email: 'co@ol.guy' })
@@ -70,7 +72,7 @@ describe(`Testing Users API`, function () {
                 done();
             });
     });
-    it(`POST ERROR - Already exists`, function (done) {
+    it(`USR-POST ERROR - Already exists`, function (done) {
         request(app)
             .post('/api/users/')
             .send({ username: 'CoolGuy', password: '123', email: 'co@ol.guy' })
@@ -80,7 +82,7 @@ describe(`Testing Users API`, function () {
                 done();
             });
     });
-    it(`POST ERROR - Wrong property`, function (done) {
+    it(`USR-POST ERROR - Wrong property`, function (done) {
         request(app)
             .post('/api/users/')
             .send({ name: 'CoolGuy', password: '123', email: 'co@ol.guy' })
@@ -90,7 +92,7 @@ describe(`Testing Users API`, function () {
                 done();
             });
     });
-    it(`POST ERROR - Too many properties`, function (done) {
+    it(`USR-POST ERROR - Too many properties`, function (done) {
         request(app)
             .post('/api/users/')
             .send({ username: 'CoolGuy', password: '123', email: 'co@ol.guy', age: 17 })
@@ -103,7 +105,7 @@ describe(`Testing Users API`, function () {
     /**
      * PUT
      */
-    it(`PUT SUCCESS`, function (done) {
+    it(`USR-PUT SUCCESS`, function (done) {
         createRandomUser((err, id) => {
             if (err)
                 return done(err);
@@ -118,7 +120,7 @@ describe(`Testing Users API`, function () {
                 });
         });
     });
-    it(`PUT ERROR - Invalid id`, function (done) {
+    it(`USR-PUT ERROR - Invalid id`, function (done) {
         request(app)
             .put(`/api/users/d290f1ee-6c54-4b01-90e6-d701748fffff`)
             .send({ username: 'ErrorWriteId', password: 'error', email: 'error@should-not.work' })
@@ -128,7 +130,7 @@ describe(`Testing Users API`, function () {
                 done();
             });
     });
-    it(`PUT ERROR - Invalid property`, function (done) {
+    it(`USR-PUT ERROR - Invalid property`, function (done) {
         createRandomUser((err, id) => {
             if (err)
                 return done(err);
@@ -144,7 +146,7 @@ describe(`Testing Users API`, function () {
                 });
         });
     });
-    it(`PUT ERROR - Too many arguments`, function (done) {
+    it(`USR-PUT ERROR - Too many arguments`, function (done) {
         createRandomUser((err, id) => {
             if (err)
                 return done(err);
@@ -163,7 +165,7 @@ describe(`Testing Users API`, function () {
     /**
      * PATCH
      */
-    it(`PATCH SUCCESS - One value`, function (done) {
+    it(`USR-PATCH SUCCESS - One value`, function (done) {
         createRandomUser((err, id) => {
             if (err)
                 return done(err);
@@ -179,7 +181,7 @@ describe(`Testing Users API`, function () {
                 });
         });
     });
-    it(`PATCH SUCCESS - All values`, function (done) {
+    it(`USR-PATCH SUCCESS - All values`, function (done) {
         createRandomUser((err, id) => {
             if (err)
                 return done(err);
@@ -195,7 +197,7 @@ describe(`Testing Users API`, function () {
                 });
         });
     });
-    it(`PATCH ERROR - Invalid id`, function (done) {
+    it(`USR-PATCH ERROR - Invalid id`, function (done) {
         request(app)
             .patch(`/api/users/d290f1ee-6c54-4b01-90e6-d701748fffff`)
             .send({ username: 'PatchWritePatch', password: 'error', email: 'error@should-not.work' })
@@ -205,7 +207,7 @@ describe(`Testing Users API`, function () {
                 done();
             });
     });
-    it(`PATCH ERROR - Invalid property`, function (done) {
+    it(`USR-PATCH ERROR - Invalid property`, function (done) {
         createRandomUser((err, id) => {
             if (err)
                 return done(err);
@@ -221,7 +223,7 @@ describe(`Testing Users API`, function () {
                 });
         });
     });
-    it(`PATCH ERROR - Too many arguments`, function (done) {
+    it(`USR-PATCH ERROR - Too many arguments`, function (done) {
         createRandomUser((err, id) => {
             if (err)
                 return done(err);
@@ -240,7 +242,7 @@ describe(`Testing Users API`, function () {
     /**
      * Delete
      */
-    it(`DELETE SUCCESS`, function (done) {
+    it(`USR-DELETE SUCCESS`, function (done) {
         createRandomUser((err, id) => {
             if (err)
                 return done(err);
@@ -254,7 +256,7 @@ describe(`Testing Users API`, function () {
                 });
         });
     });
-    it(`DELETE ERROR - Invalid id`, function (done) {
+    it(`USR-DELETE ERROR - Invalid id`, function (done) {
         request(app)
             .delete(`/api/users/d290f1ee-6c54-4b01-90e6-d701748fffff`)
             .send({ username: 'PatchWritePatch', password: 'error', email: 'error@should-not.work' })
@@ -269,7 +271,7 @@ describe(`Testing Users API`, function () {
 describe(`Testing Periods API`, function () {
     //TODO: Delete periods created for testcases after they are used
     //#region Get
-    it(`GET SUCCESS - All periods`, function (done) {
+    it(`PRD-GET SUCCESS - All periods`, function (done) {
         request(app)
             .get('/api/periods')
             .expect(200)
@@ -278,7 +280,7 @@ describe(`Testing Periods API`, function () {
                 done();
             });
     });
-    it(`GET ONE SUCCESS - One period`, function (done) {
+    it(`PRD-GET ONE SUCCESS - One period`, function (done) {
         //TODO: CREATE ONE PERIOD FIRST
         createPeriod((err, id) => {
             if (err) {
@@ -295,7 +297,7 @@ describe(`Testing Periods API`, function () {
         })
 
     });
-    it(`GET ONE ERROR - One period; not found`, function (done) {
+    it(`PRD-GET ONE ERROR - One period; not found`, function (done) {
         //TODO: CREATE ONE PERIOD FIRST
         let id = -1;
         request(app)
@@ -308,7 +310,7 @@ describe(`Testing Periods API`, function () {
     });
     //#endregion
     //#region Post
-    it(`POST ONE SUCCESS - Create one`, function (done) {
+    it(`PRD-POST ONE SUCCESS - Create one`, function (done) {
         let idToDelete;
         request(app)
             .post(`/api/periods`)
@@ -320,7 +322,7 @@ describe(`Testing Periods API`, function () {
                 done();
             });
     });
-    it(`POST ONE ERROR - Already exists`, function (done) {
+    it(`PRD-POST ONE ERROR - Already exists`, function (done) {
         let label = 'AlreadyExistsPeriod';
         createPeriod((err, id) => {
             if (err) {
@@ -337,7 +339,7 @@ describe(`Testing Periods API`, function () {
                 });
         }, label);
     });
-    it(`POST ONE ERROR - Wrong amount of arguments`, function (done) {
+    it(`PRD-POST ONE ERROR - Wrong amount of arguments`, function (done) {
         request(app)
             .post(`/api/periods`)
             .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000) })
@@ -347,7 +349,7 @@ describe(`Testing Periods API`, function () {
                 done();
             });
     });
-    it(`POST ONE ERROR - Wrong agruments`, function (done) {
+    it(`PRD-POST ONE ERROR - Wrong agruments`, function (done) {
         request(app)
             .post(`/api/periods`)
             .send({ name: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
@@ -359,7 +361,7 @@ describe(`Testing Periods API`, function () {
     });
     //#endregion
     //#region Put
-    it(`PUT SUCCESS`, function (done) {
+    it(`PRD-PUT SUCCESS`, function (done) {
         createPeriod((err, id) => {
             if (err)
                 return done(err);
@@ -374,7 +376,7 @@ describe(`Testing Periods API`, function () {
                 });
         });
     });
-    it(`PUT ERROR - Not found`, function (done) {
+    it(`PRD-PUT ERROR - Not found`, function (done) {
         let id = -1;
         request(app)
             .put(`/api/periods/${id}`)
@@ -385,7 +387,7 @@ describe(`Testing Periods API`, function () {
                 done();
             });
     });
-    it(`PUT ERROR - Invalid property`, function (done) {
+    it(`PRD-PUT ERROR - Invalid property`, function (done) {
         createPeriod((err, id) => {
             if (err)
                 return done(err);
@@ -400,7 +402,7 @@ describe(`Testing Periods API`, function () {
                 });
         });
     });
-    it(`PUT ERROR - Too many arguments`, function (done) {
+    it(`PRD-PUT ERROR - Too many arguments`, function (done) {
         createPeriod((err, id) => {
             if (err)
                 return done(err);
@@ -417,7 +419,7 @@ describe(`Testing Periods API`, function () {
     });
     //#endregion
     //#region Patch
-    it(`PATCH SUCCESS - One value`, function (done) {
+    it(`PRD-PATCH SUCCESS - One value`, function (done) {
         createPeriod((err, id) => {
             if (err)
                 return done(err);
@@ -432,7 +434,7 @@ describe(`Testing Periods API`, function () {
                 });
         });
     });
-    it(`PATCH SUCCESS - All values`, function (done) {
+    it(`PRD-PATCH SUCCESS - All values`, function (done) {
         createPeriod((err, id) => {
             if (err)
                 return done(err);
@@ -447,7 +449,7 @@ describe(`Testing Periods API`, function () {
                 });
         });
     });
-    it(`PATCH ERROR - Invalid id`, function (done) {
+    it(`PRD-PATCH ERROR - Invalid id`, function (done) {
         let id = -1;
         request(app)
             .patch(`/api/periods/${id}`)
@@ -458,7 +460,7 @@ describe(`Testing Periods API`, function () {
                 done();
             });
     });
-    it(`PATCH ERROR - Invalid property`, function (done) {
+    it(`PRD-PATCH ERROR - Invalid property`, function (done) {
         createPeriod((err, id) => {
             if (err)
                 return done(err);
@@ -473,7 +475,7 @@ describe(`Testing Periods API`, function () {
                 });
         });
     });
-    it(`PATCH ERROR - Too many arguments`, function (done) {
+    it(`PRD-PATCH ERROR - Too many arguments`, function (done) {
         createPeriod((err, id) => {
             if (err)
                 return done(err);
@@ -490,7 +492,7 @@ describe(`Testing Periods API`, function () {
     });
     //#endregion
     //#region Delete
-    it(`DELETE SUCCESS - One Period`, function (done) {
+    it(`PRD-DELETE SUCCESS - One Period`, function (done) {
         createPeriod((err, id) => {
             if (err) {
                 return done(err);
@@ -504,7 +506,7 @@ describe(`Testing Periods API`, function () {
                 });
         })
     });
-    it(`DELETE ERROR - Not found`, function (done) {
+    it(`PRD-DELETE ERROR - Not found`, function (done) {
         let id = -1;
         request(app)
             .delete(`/api/periods/${id}`)

@@ -2,25 +2,19 @@
 
 const express = require('express');
 const bodyparser = require('body-parser');
-const Sequelize = require('sequelize');
+const db = require('./Services/database');
 
 const fs = require('fs');
 
-const wsConfigFilePath = "./Configs/webserverConfig.json";
-const dbConfigFilePath = './Configs/dbConfig.json';
-
-const dbConfig = JSON.parse(fs.readFileSync(dbConfigFilePath));
+const wsConfigFilePath = './Configs/webserverConfig.json';
 const wsConfig = JSON.parse(fs.readFileSync(wsConfigFilePath));
-
-const sequelize = new Sequelize(dbConfig.database, dbConfig.user, dbConfig.password, dbConfig.options);
 
 const app = express();
 connectToDb();
 
 async function connectToDb(){
     try {
-        //connection aufbauen
-        await sequelize.authenticate();
+        await db.connect();
 
         defaultSetup();
     } catch (err) {
@@ -29,16 +23,20 @@ async function connectToDb(){
 }
 
 function defaultSetup(){
-    const periodsRouter = require("./Periods/PeriodsRouter");
-    const userRouter = require("./Users/UserRouter");
+    const periodsRouter = require('./Periods/PeriodsRouter');
+    const userRouter = require('./Users/UserRouter');
+    const authController = require('./Authentication/AuthenticationController');
 
-    app.use("/api/periods", periodsRouter);
-    app.use("/api/users", userRouter);
     app.use(bodyparser.json());
-    app.get("/", (req, res) => {res.send('Express is up and running.')});
+    app.post('/api/v1/auth/login', authController.login);
+    app.use(authController.verifyToken);
+    app.use('/api/v1/periods', periodsRouter);
+    app.use('/api/v1/users', userRouter);
+    app.get('/', (req, res) => {res.send('Express is up and running.')});
+
+    app.get('/secret', (req, res) => {res.send('Secret site')});
 
     app.listen(wsConfig.port, wsConfig.hostname, () => {console.log(`Express is up and running on ${wsConfig.hostname}:${wsConfig.port}`)});
-    console.log('Successfully connected to database.')
 }
 function errorSetup(err){
     app.use('*', (req, res) => {res.status(500).send('This page is currently unavaliable. Please try it later again!')});

@@ -33,7 +33,6 @@ function defaultSetup(){
     app.use('/api/v1/periods', periodsRouter);
     app.use('/api/v1/users', userRouter);
     app.get('/', (req, res) => {res.send('Express is up and running.')});
-
     app.get('/secret', (req, res) => {res.send('Secret site')});
 
     app.listen(wsConfig.port, wsConfig.hostname, () => {console.log(`Express is up and running on ${wsConfig.hostname}:${wsConfig.port}`)});

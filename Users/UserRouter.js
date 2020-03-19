@@ -18,14 +18,15 @@ const router = express.Router();
 const db = require('../Services/database');
 const User = db.model('User');
 
-router.get('/', async (req, res) => {
-    try {
-        let users = await User.findAll();
-        res.status(200).json(users);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Something went wrong');
-    }
+router.get('/', (req, res) => {
+    User.findAll()
+        .then((users) => {
+            res.status(200).json(users);
+        })
+        .catch((err) => {
+            console.error(err);
+            res.status(500).send('Something went wrong');
+    });
 });
 
 router.get('/:id', selectById, (req, res) => {
@@ -40,7 +41,7 @@ router.post('/', (req, res) => {
         .catch((err) => {
             console.error(err);
             res.status(500).send('Could not create user');
-        });
+    });
 });
 
 router.put('/:id', selectById, validateCompleteUser, doUpdate);
@@ -55,7 +56,7 @@ router.delete('/:id', selectById, (req, res) => {
         .catch((err) => {
             console.log(err);
             res.status(500).send('Something went wrong');
-        });
+    });
 });
 
 function selectById(req, res, next) {
@@ -72,7 +73,7 @@ function selectById(req, res, next) {
             console.error(err);
             res.status(500).send('Something went wrong');
             return;
-        });
+    });
 }
 function validateCompleteUser(req, res, next) {
     validateUserObjectForUpdate(req, res, next, true);
@@ -108,6 +109,6 @@ function doUpdate(req, res) {
         .catch((err) => {
             console.error(err);
             res.status(500).send('Something went wrong');
-        });
+    });
 }
 module.exports = router;

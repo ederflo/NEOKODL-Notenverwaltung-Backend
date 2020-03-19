@@ -26,9 +26,9 @@ function defaultSetup(){
     const periodsRouter = require("./Periods/PeriodsRouter");
     const userRouter = require("./Users/UserRouter");
 
+    app.use(bodyparser.json());
     app.use("/api/periods", periodsRouter);
     app.use("/api/users", userRouter);
-    app.use(bodyparser.json());
     app.get("/", (req, res) => {res.send('Express is up and running.')});
 
     app.listen(wsConfig.port, wsConfig.hostname, () => {console.log(`Express is up and running on ${wsConfig.hostname}:${wsConfig.port}`)});

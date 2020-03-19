@@ -2,25 +2,19 @@
 
 const express = require('express');
 const bodyparser = require('body-parser');
-const Sequelize = require('sequelize');
+const db = require('./Services/database');
 
 const fs = require('fs');
 
 const wsConfigFilePath = "./Configs/webserverConfig.json";
-const dbConfigFilePath = './Configs/dbConfig.json';
-
-const dbConfig = JSON.parse(fs.readFileSync(dbConfigFilePath));
 const wsConfig = JSON.parse(fs.readFileSync(wsConfigFilePath));
-
-const sequelize = new Sequelize(dbConfig.database, dbConfig.user, dbConfig.password, dbConfig.options);
 
 const app = express();
 connectToDb();
 
 async function connectToDb(){
     try {
-        //connection aufbauen
-        await sequelize.authenticate();
+        await db.connect();
 
         defaultSetup();
     } catch (err) {

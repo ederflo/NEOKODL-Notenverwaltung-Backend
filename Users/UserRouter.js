@@ -33,8 +33,7 @@ router.get('/:id', selectById, (req, res) => {
 });
 
 router.post('/', (req, res) => {
-    User
-        .create(req.body)
+    User.create(req.body)
         .then((user) => {
             res.status(201).json(user);
         })
@@ -49,8 +48,7 @@ router.put('/:id', selectById, validateCompleteUser, doUpdate);
 router.patch('/:id', selectById, validatePartialUser, doUpdate);
 
 router.delete('/:id', selectById, (req, res) => {
-    User
-        .destroy(req.selectedUser.id)
+    req.selectedUser.destroy()
         .then(() => {
             res.status(200).send('User deleted');
         })
@@ -61,8 +59,7 @@ router.delete('/:id', selectById, (req, res) => {
 });
 
 function selectById(req, res, next) {
-    User
-        .findOne({ where: { id: req.params.id } })
+    User.findOne({ where: { id: req.params.id } })
         .then(user => {
             if (user == null) {
                 res.status(404).send('Not found');
@@ -104,11 +101,7 @@ function validateUserObjectForUpdate(req, res, next, fullUpdate) {
     next();
 }
 function doUpdate(req, res) {
-    for (let key in req.body) {
-        req.selectedUser[key] = req.body[key];
-    }
-    User
-        .update(req.selectedUser)
+    req.selectedUser.update(req.body)
         .then((user) => {
             res.status(200).json(user);
         })

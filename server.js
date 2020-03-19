@@ -6,7 +6,7 @@ const db = require('./Services/database');
 
 const fs = require('fs');
 
-const wsConfigFilePath = "./Configs/webserverConfig.json";
+const wsConfigFilePath = './Configs/webserverConfig.json';
 const wsConfig = JSON.parse(fs.readFileSync(wsConfigFilePath));
 
 const app = express();
@@ -23,16 +23,19 @@ async function connectToDb(){
 }
 
 function defaultSetup(){
-    const periodsRouter = require("./Periods/PeriodsRouter");
-    const userRouter = require("./Users/UserRouter");
+    const periodsRouter = require('./Periods/PeriodsRouter');
+    const userRouter = require('./Users/UserRouter');
+    const authController = require('./Authentication/AuthenticationController');
 
     app.use(bodyparser.json());
-    app.use("/api/periods", periodsRouter);
-    app.use("/api/users", userRouter);
-    app.get("/", (req, res) => {res.send('Express is up and running.')});
+    app.post('/api/v1/auth/login', authController.login);
+    app.use(authController.verifyToken);
+    app.use('/api/v1/periods', periodsRouter);
+    app.use('/api/v1/users', userRouter);
+    app.get('/', (req, res) => {res.send('Express is up and running.')});
+    app.get('/secret', (req, res) => {res.send('Secret site')});
 
     app.listen(wsConfig.port, wsConfig.hostname, () => {console.log(`Express is up and running on ${wsConfig.hostname}:${wsConfig.port}`)});
-    console.log('Successfully connected to database.')
 }
 function errorSetup(err){
     app.use('*', (req, res) => {res.status(500).send('This page is currently unavaliable. Please try it later again!')});

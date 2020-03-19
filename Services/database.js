@@ -9,7 +9,7 @@ const sequelize = new Sequelize(dbConfig.database, dbConfig.user, dbConfig.passw
 const connect = async () => {
   try {
     await sequelize.authenticate();
-    await sequelize.sync();
+    await sequelize.sync({force: true});
 
     console.log('Connection to the database has been established successfully.');
   }

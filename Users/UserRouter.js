@@ -17,8 +17,9 @@ const express = require('express');
 const router = express.Router();
 const db = require('../Services/database');
 const User = db.model('User');
+const authController = require('../Authentication/AuthenticationController');
 
-router.get('/', (req, res) => {
+router.get('/', authController.verifyToken, (req, res) => {
     User.findAll()
         .then((users) => {
             res.status(200).json(users);
@@ -29,7 +30,7 @@ router.get('/', (req, res) => {
     });
 });
 
-router.get('/:id', selectById, (req, res) => {
+router.get('/:id', authController.verifyToken, selectById, (req, res) => {
     res.status(200).json(req.selectedUser);
 });
 
@@ -44,11 +45,11 @@ router.post('/', (req, res) => {
     });
 });
 
-router.put('/:id', selectById, validateCompleteUser, doUpdate);
+router.put('/:id', authController.verifyToken, selectById, validateCompleteUser, doUpdate);
 
-router.patch('/:id', selectById, validatePartialUser, doUpdate);
+router.patch('/:id', authController.verifyToken, selectById, validatePartialUser, doUpdate);
 
-router.delete('/:id', selectById, (req, res) => {
+router.delete('/:id', authController.verifyToken, selectById, (req, res) => {
     req.selectedUser.destroy()
         .then(() => {
             res.status(200).send('User deleted');

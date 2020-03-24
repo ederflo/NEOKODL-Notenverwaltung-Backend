@@ -29,9 +29,9 @@ function defaultSetup(){
 
     app.use(bodyparser.json());
     app.post('/api/v1/auth/login', authController.login);
+    app.use('/api/v1/users', userRouter);
     app.use(authController.verifyToken);
     app.use('/api/v1/periods', periodsRouter);
-    app.use('/api/v1/users', userRouter);
     app.get('/', (req, res) => {res.send('Express is up and running.')});
     app.get('/secret', (req, res) => {res.send('Secret site')});
 

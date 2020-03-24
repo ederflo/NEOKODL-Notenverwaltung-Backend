@@ -1,0 +1,30 @@
+{
+    "backend": {
+        "hostname": "neokodl",
+        "port": 8080,
+        "apiPrefix": "/api/v1"
+    },
+    "security": {
+        "certKeyFilePath": "./yyy/xxx.key",
+        "certFilePath": "./yyy/xxx.crt"
+    },
+    "dbSettings": {
+        "database": "Neokodl",
+        "username": "neokodladmin",
+        "password": "admin",
+        "options" : {
+            "host" : "neokodl",
+            "dialect" : "mssql",
+            "logging": false
+        }
+    },
+    "devOptions": {
+        "mockdata": false,
+        "recreateDatabase": false,
+        "runningMochaTests": "will be set during startup at the correct value"
+    },
+    "corsOptions": {
+        "origin": "http://localhost:3000",
+        "optionsSucessStatus": 200
+    }
+}

@@ -1,13 +1,20 @@
 /**
  * Http tests for http testing
- * USR - User api
- * PRD - Period api
+ * USR - User api/v1
+ * PRD - Period api/v1
  */
 
 const assert = require('assert');
 const http = require('http');
 const app = require('../server');
 const request = require('supertest');
+
+before(done => {
+    app.on( "app_started", function()
+  {
+    done();
+  })
+})
 
 describe('Testing Server connection', function () {
     it('Server - Should return 200', function (done) {
@@ -22,13 +29,13 @@ describe('Testing Server connection', function () {
 });
 
 // TODO: Too less properties test
-describe(`Testing Users API`, function () {
+describe(`Testing Users api/v1`, function () {
     /**
      * GET
      */
     it(`USR-GET SUCCESS - All users`, function (done) {
         request(app)
-            .get('/api/users/id')
+            .get('/api/v1/users/id')
             .expect(200)
             .end((err, res) => {
                 if (err) return done(err);
@@ -40,7 +47,7 @@ describe(`Testing Users API`, function () {
             if (err)
                 return done(err);
             request(app)
-                .get(`/api/users/${id}`)
+                .get(`/api/v1/users/${id}`)
                 .expect(200)
                 .end((err, res) => {
                     deleteUser(id);
@@ -52,7 +59,7 @@ describe(`Testing Users API`, function () {
     });
     it(`USR-GET ERROR - Invalid id`, function (done) {
         request(app)
-            .get('/api/users/d290f1ee-6c54-4b01-90e6-d701748fffff')
+            .get('/api/v1/users/d290f1ee-6c54-4b01-90e6-d701748fffff')
             .expect(404)
             .end((err, res) => {
                 if (err) return done(err);
@@ -64,7 +71,7 @@ describe(`Testing Users API`, function () {
      */
     it(`USR-POST SUCCESS`, function (done) {
         request(app)
-            .post('/api/users/')
+            .post('/api/v1/users/')
             .send({ username: 'CoolGuy', password: '123', email: 'co@ol.guy' })
             .expect(201)
             .end((err, res) => {
@@ -74,7 +81,7 @@ describe(`Testing Users API`, function () {
     });
     it(`USR-POST ERROR - Already exists`, function (done) {
         request(app)
-            .post('/api/users/')
+            .post('/api/v1/users/')
             .send({ username: 'CoolGuy', password: '123', email: 'co@ol.guy' })
             .expect(201)
             .end((err, res) => {
@@ -84,7 +91,7 @@ describe(`Testing Users API`, function () {
     });
     it(`USR-POST ERROR - Wrong property`, function (done) {
         request(app)
-            .post('/api/users/')
+            .post('/api/v1/users/')
             .send({ name: 'CoolGuy', password: '123', email: 'co@ol.guy' })
             .expect(400)
             .end((err, res) => {
@@ -94,7 +101,7 @@ describe(`Testing Users API`, function () {
     });
     it(`USR-POST ERROR - Too many properties`, function (done) {
         request(app)
-            .post('/api/users/')
+            .post('/api/v1/users/')
             .send({ username: 'CoolGuy', password: '123', email: 'co@ol.guy', age: 17 })
             .expect(400)
             .end((err, res) => {
@@ -110,7 +117,7 @@ describe(`Testing Users API`, function () {
             if (err)
                 return done(err);
             request(app)
-                .put(`/api/users/${id}`)
+                .put(`/api/v1/users/${id}`)
                 .send({ username: 'OverWrite', password: '1234', email: 'invalid@e.mail' })
                 .expect(200)
                 .end((err, res) => {
@@ -122,7 +129,7 @@ describe(`Testing Users API`, function () {
     });
     it(`USR-PUT ERROR - Invalid id`, function (done) {
         request(app)
-            .put(`/api/users/d290f1ee-6c54-4b01-90e6-d701748fffff`)
+            .put(`/api/v1/users/d290f1ee-6c54-4b01-90e6-d701748fffff`)
             .send({ username: 'ErrorWriteId', password: 'error', email: 'error@should-not.work' })
             .expect(400)
             .end((err, res) => {
@@ -135,7 +142,7 @@ describe(`Testing Users API`, function () {
             if (err)
                 return done(err);
             request(app)
-                .put(`/api/users/${id}`)
+                .put(`/api/v1/users/${id}`)
                 .send({ name: 'ErrorWriteProp', password: 'error', email: 'error@should-not.work' })
                 .expect(400)
                 .end((err, res) => {
@@ -151,7 +158,7 @@ describe(`Testing Users API`, function () {
             if (err)
                 return done(err);
             request(app)
-                .put(`/api/users/${id}`)
+                .put(`/api/v1/users/${id}`)
                 .send({ username: 'ErrorWriteArgs', password: 'error', email: 'error@should-not.work', age: 17 })
                 .expect(400)
                 .end((err, res) => {
@@ -170,7 +177,7 @@ describe(`Testing Users API`, function () {
             if (err)
                 return done(err);
             request(app)
-                .patch(`/api/users/${id}`)
+                .patch(`/api/v1/users/${id}`)
                 .send({ username: 'OverPatchName' })
                 .expect(200)
                 .end((err, res) => {
@@ -186,7 +193,7 @@ describe(`Testing Users API`, function () {
             if (err)
                 return done(err);
             request(app)
-                .patch(`/api/users/${id}`)
+                .patch(`/api/v1/users/${id}`)
                 .send({ username: 'OverPatchAll', password: '1234', email: 'over@patchworks.com' })
                 .expect(200)
                 .end((err, res) => {
@@ -199,7 +206,7 @@ describe(`Testing Users API`, function () {
     });
     it(`USR-PATCH ERROR - Invalid id`, function (done) {
         request(app)
-            .patch(`/api/users/d290f1ee-6c54-4b01-90e6-d701748fffff`)
+            .patch(`/api/v1/users/d290f1ee-6c54-4b01-90e6-d701748fffff`)
             .send({ username: 'PatchWritePatch', password: 'error', email: 'error@should-not.work' })
             .expect(400)
             .end((err, res) => {
@@ -212,7 +219,7 @@ describe(`Testing Users API`, function () {
             if (err)
                 return done(err);
             request(app)
-                .patch(`/api/users/${id}`)
+                .patch(`/api/v1/users/${id}`)
                 .send({ name: 'PatchWriteProp', password: 'error', email: 'error@should-not.work' })
                 .expect(400)
                 .end((err, res) => {
@@ -228,7 +235,7 @@ describe(`Testing Users API`, function () {
             if (err)
                 return done(err);
             request(app)
-                .patch(`/api/users/${id}`)
+                .patch(`/api/v1/users/${id}`)
                 .send({ username: 'PatchWriteArgs', password: 'error', email: 'error@should-not.work', age: 17 })
                 .expect(400)
                 .end((err, res) => {
@@ -247,7 +254,7 @@ describe(`Testing Users API`, function () {
             if (err)
                 return done(err);
             request(app)
-                .delete(`/api/users/${id}`)
+                .delete(`/api/v1/users/${id}`)
                 .expect(204)
                 .end((err, res) => {
                     if (err) 
@@ -258,7 +265,7 @@ describe(`Testing Users API`, function () {
     });
     it(`USR-DELETE ERROR - Invalid id`, function (done) {
         request(app)
-            .delete(`/api/users/d290f1ee-6c54-4b01-90e6-d701748fffff`)
+            .delete(`/api/v1/users/d290f1ee-6c54-4b01-90e6-d701748fffff`)
             .send({ username: 'PatchWritePatch', password: 'error', email: 'error@should-not.work' })
             .expect(400)
             .end((err, res) => {
@@ -268,12 +275,12 @@ describe(`Testing Users API`, function () {
     });
 });
 
-describe(`Testing Periods API`, function () {
+describe(`Testing Periods api/v1`, function () {
     //TODO: Delete periods created for testcases after they are used
     //#region Get
     it(`PRD-GET SUCCESS - All periods`, function (done) {
         request(app)
-            .get('/api/periods')
+            .get('/api/v1/periods')
             .expect(200)
             .end((err, res) => {
                 if (err) return done(err);
@@ -287,7 +294,7 @@ describe(`Testing Periods API`, function () {
                 return done(err);
             }
             request(app)
-                .get(`/api/periods/${id}`)
+                .get(`/api/v1/periods/${id}`)
                 .expect(200)
                 .end((err, res) => {
                     deletePeriod(id)
@@ -301,7 +308,7 @@ describe(`Testing Periods API`, function () {
         //TODO: CREATE ONE PERIOD FIRST
         let id = -1;
         request(app)
-            .get(`/api/periods/${id}`)
+            .get(`/api/v1/periods/${id}`)
             .expect(404)
             .end((err, res) => {
                 if (err) return done(err);
@@ -313,7 +320,7 @@ describe(`Testing Periods API`, function () {
     it(`PRD-POST ONE SUCCESS - Create one`, function (done) {
         let idToDelete;
         request(app)
-            .post(`/api/periods`)
+            .post(`/api/v1/periods`)
             .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
             .expect(201)
             .end((err, res) => {
@@ -329,7 +336,7 @@ describe(`Testing Periods API`, function () {
                 return done(err);
             }
             request(app)
-                .post(`/api/periods`)
+                .post(`/api/v1/periods`)
                 .send({ label: label, from: new Date('2020-27-02'), till: new Date('2022-27-03') })
                 .expect(409)
                 .end((err, res) => {
@@ -341,7 +348,7 @@ describe(`Testing Periods API`, function () {
     });
     it(`PRD-POST ONE ERROR - Wrong amount of arguments`, function (done) {
         request(app)
-            .post(`/api/periods`)
+            .post(`/api/v1/periods`)
             .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000) })
             .expect(400)
             .end((err, res) => {
@@ -351,7 +358,7 @@ describe(`Testing Periods API`, function () {
     });
     it(`PRD-POST ONE ERROR - Wrong agruments`, function (done) {
         request(app)
-            .post(`/api/periods`)
+            .post(`/api/v1/periods`)
             .send({ name: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
             .expect(400)
             .end((err, res) => {
@@ -366,7 +373,7 @@ describe(`Testing Periods API`, function () {
             if (err)
                 return done(err);
             request(app)
-                .put(`/api/periods/${id}`)
+                .put(`/api/v1/periods/${id}`)
                 .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
                 .expect(200)
                 .end((err, res) => {
@@ -379,7 +386,7 @@ describe(`Testing Periods API`, function () {
     it(`PRD-PUT ERROR - Not found`, function (done) {
         let id = -1;
         request(app)
-            .put(`/api/periods/${id}`)
+            .put(`/api/v1/periods/${id}`)
             .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
             .expect(400)
             .end((err, res) => {
@@ -392,7 +399,7 @@ describe(`Testing Periods API`, function () {
             if (err)
                 return done(err);
             request(app)
-                .put(`/api/periods/${id}`)
+                .put(`/api/v1/periods/${id}`)
                 .send({ name: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
                 .expect(400)
                 .end((err, res) => {
@@ -407,7 +414,7 @@ describe(`Testing Periods API`, function () {
             if (err)
                 return done(err);
             request(app)
-                .put(`/api/periods/${id}`)
+                .put(`/api/v1/periods/${id}`)
                 .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03'), duration: '2 years 1 month' })
                 .expect(400)
                 .end((err, res) => {
@@ -424,7 +431,7 @@ describe(`Testing Periods API`, function () {
             if (err)
                 return done(err);
             request(app)
-                .patch(`/api/periods/${id}`)
+                .patch(`/api/v1/periods/${id}`)
                 .send({ label: 'NewTestPeriod' + Math.floor(Math.random() * 1000)})
                 .expect(200)
                 .end((err, res) => {
@@ -439,7 +446,7 @@ describe(`Testing Periods API`, function () {
             if (err)
                 return done(err);
             request(app)
-                .patch(`/api/periods/${id}`)
+                .patch(`/api/v1/periods/${id}`)
                 .send({ label: 'NewTestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
                 .expect(200)
                 .end((err, res) => {
@@ -452,7 +459,7 @@ describe(`Testing Periods API`, function () {
     it(`PRD-PATCH ERROR - Invalid id`, function (done) {
         let id = -1;
         request(app)
-            .patch(`/api/periods/${id}`)
+            .patch(`/api/v1/periods/${id}`)
             .send({ label: 'NewTestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
             .expect(400)
             .end((err, res) => {
@@ -465,7 +472,7 @@ describe(`Testing Periods API`, function () {
             if (err)
                 return done(err);
             request(app)
-                .patch(`/api/periods/${id}`)
+                .patch(`/api/v1/periods/${id}`)
                 .send({ name: 'shouldNotWork' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
                 .expect(400)
                 .end((err, res) => {
@@ -480,7 +487,7 @@ describe(`Testing Periods API`, function () {
             if (err)
                 return done(err);
             request(app)
-                .patch(`/api/periods/${id}`)
+                .patch(`/api/v1/periods/${id}`)
                 .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03'), duration: '2 years 1 month' })
                 .expect(400)
                 .end((err, res) => {
@@ -498,7 +505,7 @@ describe(`Testing Periods API`, function () {
                 return done(err);
             }
             request(app)
-                .delete(`/api/periods/${id}`)
+                .delete(`/api/v1/periods/${id}`)
                 .expect(200)
                 .end((err, res) => {
                     if (err) return done(err);
@@ -509,7 +516,7 @@ describe(`Testing Periods API`, function () {
     it(`PRD-DELETE ERROR - Not found`, function (done) {
         let id = -1;
         request(app)
-            .delete(`/api/periods/${id}`)
+            .delete(`/api/v1/periods/${id}`)
             .expect(404)
             .end((err, res) => {
                 if (err) return done(err);
@@ -521,7 +528,7 @@ describe(`Testing Periods API`, function () {
 
 function deleteUser(id) {
 	request(app)
-		.delete(`/api/users/${id}`)
+		.delete(`/api/v1/users/${id}`)
 		.end((err, res) => {
 			if (err) 
 				assert.fail(err);
@@ -530,7 +537,7 @@ function deleteUser(id) {
 
 function deletePeriod(id) {
     request(app)
-        .delete(`/api/periods/${id}`)
+        .delete(`/api/v1/periods/${id}`)
         .end((err, res) => {
             if (err)
             	assert.fail(err);
@@ -543,7 +550,7 @@ function createPeriod(callback, label) {
         label = 'TestPeriod' + Math.floor(Math.random() * 1000)
     }
     request(app)
-        .post(`/api/periods`)
+        .post(`/api/v1/periods`)
         .send({
             label: label,
             from: Date.now(),
@@ -559,7 +566,7 @@ function createPeriod(callback, label) {
 
 function createRandomUser(callback) {
     request(app)
-        .post('/api/users/')
+        .post('/api/v1/users/')
         .send({
             username: 'RandUser' + Math.floor(Math.random() * 1000),
             password: '0000',

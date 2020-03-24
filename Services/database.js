@@ -1,10 +1,10 @@
+
 const Sequelize = require('sequelize');
-const fs = require('fs');
+const configManager = require('./configManager');
 
-const dbConfigFilePath = './Configs/dbConfig.json';
-const dbConfig = JSON.parse(fs.readFileSync(dbConfigFilePath));
+const dbConfig = configManager.getDataBaseConfig();
 
-const sequelize = new Sequelize(dbConfig.database, dbConfig.user, dbConfig.password, dbConfig.options);
+const sequelize = new Sequelize(dbConfig.database, dbConfig.username, dbConfig.password, dbConfig.options);
 
 const connect = async () => {
   try {

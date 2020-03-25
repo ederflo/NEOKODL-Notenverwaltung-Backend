@@ -6,7 +6,8 @@ const defaultConfigPath = './../configs/default.json';
 let configData = {}
 
 configManager.loadConfig = function(filepath) {
-    if (!filepath || filepath.length <= 0 || !fs.existsSync(filepath))
+    console.log(!fs.existsSync(filepath));
+    if (!filepath || filepath.length <= 0)
         filepath = defaultConfigPath;
     configData = require(filepath);
 }

@@ -7,11 +7,20 @@ const cors = require('cors');
 const configManager = require('./Services/configManager');
 
 const app = express();
+let configPath = process.argv[2];
+
+try {
+    if (configPath)
+            configPath = './../configs/' + configPath + ".json";
+    configManager.loadConfig(configPath);
+} catch (err) {
+    console.error('Cannot load config file: ' + configPath + '! Server is using default config file!');
+    console.error(err);
+}
 connectToDb();
 
 async function connectToDb(){
     try {
-        configManager.loadConfig();
         await db.connect();
         defaultSetup();
     } catch (err) {

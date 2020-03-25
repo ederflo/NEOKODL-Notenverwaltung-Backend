@@ -11,7 +11,6 @@ PUT     |   /:id
 PATCH   |   /:id
 DELETE  |   /:id
 PATCH   |   /activate/:id
-PATCH   |   /toggleArchive/:id
 
 */
 
@@ -63,6 +62,7 @@ router.post('/', (req, res) => {
         })
         .catch((err) => {
             res.send(500).send('Something broke.');
+            console.error(err);
         })
 });
 
@@ -114,25 +114,6 @@ router.patch('/activate/:id', selectById, (req, res) => {
     }
 });
 
-router.patch('/toggleArchive/:id', selectById, (req, res) => {
-    if (req.selectedPeriod.active) {
-        res.status(500).send('Cannot archive an active period.');
-    } else {
-        let needsToBeArchived = false;
-        if(!req.selectedPeriod.archived){
-            needsToBeArchived = true;
-        }
-        req.selectedPeriod.update({archived: needsToBeArchived})
-            .then((period) => {
-                res.status(200).json(period);
-            })
-            .catch((err) => {
-                res.status(500).send('Something went wrong');
-                console.error(err);
-            });
-    }
-});
-
 function selectById(req, res, next) {
     Period.findOne({ where: { id: req.params.id } })
         .then(period => {
@@ -171,19 +152,24 @@ function validatePeriodObjectForUpdate(req, res, next, fullUpdate) {
         }
     }
 
-    if(comparePeriod.active != req.body.active){
-        res.status(400).send('Cannot set field: active of period on this route.');
-        return;
-    }
-
-    if(comparePeriod.archived != req.body.archived){
-        res.status(400).send('Cannot set field: archived of period on this route.');
-        return;
-    }
-
     if (Object.keys(req.body).some(k => { return comparePeriod[k] == undefined; })) {
         res.status(400).send('properties of object do not match');
         return;
+    }
+
+    if(req.body.active != undefined){
+        if(comparePeriod.active != req.body.active){
+            res.status(400).send('Cannot set field: active of period on this route.');
+            return;
+        }
+    }
+    if(req.body.archived != undefined){
+        if(comparePeriod.archived != req.body.archived){
+            if (req.selectedPeriod.active) {
+                res.status(400).send('Cannot archive an active period.');
+                return;
+            }
+        }
     }
 
     req.body.user = user;

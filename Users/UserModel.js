@@ -12,7 +12,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false
         },
-        active: DataTypes.BOOLEAN
+        active: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false
+        }
     }, {
         instanceMethods: {
           validPassword: async function (password) {

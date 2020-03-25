@@ -35,8 +35,10 @@ router.get('/:id', authController.verifyToken, selectById, (req, res) => {
 });
 
 router.post('/', (req, res) => {
+    delete req.body.id;
     User.create(req.body)
         .then((user) => {
+            user.password = req.body.password;
             res.status(201).json(user);
         })
         .catch((err) => {
@@ -85,6 +87,7 @@ function validatePartialUser(req, res, next) {
 function validateUserObjectForUpdate(req, res, next, fullUpdate) {
     let compareUser = req.selectedUser.toJSON();
 
+    delete compareUser.id;
     delete compareUser.createdAt;
     delete compareUser.updatedAt;
 

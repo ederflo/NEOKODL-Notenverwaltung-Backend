@@ -29,7 +29,7 @@ controller.login = async function(req, res) {
         userFromDb = await User.findOne({ where: { username: credentials.username} });
         if (userFromDb == null) {
             res.status(401).send('Authentication failed!');
-            console.log('Access denied! User not exists');
+            console.log('Access denied! User does not exist');
             return;
         }
         if (!await Bcrypt.compare(credentials.password, userFromDb.password)) {

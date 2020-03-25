@@ -22,10 +22,11 @@ const connect = async () => {
 const model = name => database.models[name];
 
 const User = sequelize.import('./../Users/UserModel');
+const Period = sequelize.import('./../Periods/PeriodsModel');
 
 const database = {
     sequelize: sequelize,
-    models: {User},
+    models: {User, Period},
     connect,
     model
 };

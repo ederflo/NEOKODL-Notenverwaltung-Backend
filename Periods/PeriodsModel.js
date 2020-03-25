@@ -4,6 +4,7 @@ module.exports = (sequelize, DataTypes) => {
       label: {
         type: DataTypes.STRING,
         allowNull: false,
+        validate: {len: [4, 20]}
       },
       from: {
         type: DataTypes.DATE,

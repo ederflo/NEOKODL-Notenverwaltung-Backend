@@ -31,6 +31,7 @@ router.get('/', authController.verifyToken, (req, res) => {
 });
 
 router.get('/:id', authController.verifyToken, selectById, (req, res) => {
+    delete req.selectedUser.password;
     res.status(200).json(req.selectedUser);
 });
 
@@ -38,7 +39,7 @@ router.post('/', (req, res) => {
     delete req.body.id;
     User.create(req.body)
         .then((user) => {
-            user.password = req.body.password;
+            delete user.password;
             res.status(201).json(user);
         })
         .catch((err) => {

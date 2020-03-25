@@ -6,13 +6,18 @@ module.exports = (sequelize, DataTypes) => {
         username: {
             type: DataTypes.STRING,
             allowNull: false,
-            unique: true
+            unique: true,
+            validate: { len: [4, 50]}
         },
         password: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: false,
+            validate: { len: [4, 50]}
         },
-        active: DataTypes.BOOLEAN
+        active: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false
+        }
     }, {
         instanceMethods: {
           validPassword: async function (password) {

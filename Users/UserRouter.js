@@ -22,6 +22,10 @@ const authController = require('../Authentication/AuthenticationController');
 router.get('/', authController.verifyToken, (req, res) => {
     User.findAll()
         .then((users) => {
+            let length = users.length;
+            for(let i = 0; i < length; i++){
+                users[i].password = undefined;
+            }
             res.status(200).json(users);
         })
         .catch((err) => {
@@ -31,12 +35,15 @@ router.get('/', authController.verifyToken, (req, res) => {
 });
 
 router.get('/:id', authController.verifyToken, selectById, (req, res) => {
+    req.selectedUser.password = undefined;
     res.status(200).json(req.selectedUser);
 });
 
 router.post('/', (req, res) => {
+    delete req.body.id;
     User.create(req.body)
         .then((user) => {
+            user.password = undefined;
             res.status(201).json(user);
         })
         .catch((err) => {
@@ -85,6 +92,7 @@ function validatePartialUser(req, res, next) {
 function validateUserObjectForUpdate(req, res, next, fullUpdate) {
     let compareUser = req.selectedUser.toJSON();
 
+    delete compareUser.id;
     delete compareUser.createdAt;
     delete compareUser.updatedAt;
 
@@ -105,6 +113,7 @@ function validateUserObjectForUpdate(req, res, next, fullUpdate) {
 function doUpdate(req, res) {
     req.selectedUser.update(req.body)
         .then((user) => {
+            user.password = undefined;
             res.status(200).json(user);
         })
         .catch((err) => {

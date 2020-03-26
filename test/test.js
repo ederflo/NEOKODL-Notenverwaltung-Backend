@@ -9,11 +9,18 @@ const http = require('http');
 const app = require('../server');
 const request = require('supertest');
 
-const successUser = { username: 'CoolGuy', password: '12345', active: false };
-var token = "Bearer ";
+const successUser = { username: 'CoolGuy', password: '12345', active: true };
+
+const authUser1 = { username: 'authUser1', password: 'auth1', active: true };
+const authUser2 = { username: 'authUser2', password: 'auth2', active: true };
+
+var authUserToken1 = 'Bearer ';
+var authUserToken2 = 'Bearer ';
+var token = 'Bearer ';
+
 
 before(done => {
-    app.on("app_started", function () {
+    app.on('app_started', function () {
         done();
     })
 })
@@ -23,6 +30,90 @@ describe('Testing Server connection', function () {
         request(app)
             .get('/')
             .expect(200)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+});
+
+describe(`Testing Authorization api/v1`, function () {
+    //TODO: Delete periods created for testcases after they are used
+    it(`AUTH-CREATE AuthUser1`, function (done) {
+        request(app)
+            .post('/api/v1/users/')
+            .send(authUser1)
+            .expect(201)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it('AUTH-LOGIN SUCCESS', function (done) {
+        request(app)
+            .post('/api/v1/auth/login')
+            .send({ username: authUser1.username, password: authUser1.password })
+            .expect(200)
+            .end((err, res) => {
+                if (err) return done(err);
+                authUserToken1 += res.body.token;
+                done();
+            });
+    });
+    it('AUTH-LOGIN ERROR - Invalid property names', function (done) {
+        request(app)
+            .post('/api/v1/auth/login')
+            .send({ userName: authUser1.username, passwort: authUser1.password })
+            .expect(401)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it('AUTH-LOGIN ERROR - Too less properties', function (done) {
+        request(app)
+            .post('/api/v1/auth/login')
+            .send({ userName: authUser1.username })
+            .expect(401)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it('AUTH-LOGIN ERROR - Too many properties', function (done) {
+        request(app)
+            .post('/api/v1/auth/login')
+            .send({ userName: authUser1.username, passwort: authUser1.password, email: "test@gmx.at" })
+            .expect(401)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it('AUTH-AUTHORIZATION SUCCESS - User accesses secret page', function (done) {
+        request(app)
+            .get('/secret')
+            .set({ Authorization: authUserToken1 })
+            .expect(200)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it('AUTH-AUTHORIZATION ERROR - Wrong token', function (done) {
+        request(app)
+            .get('/secret')
+            .set({ Authorization: '123456789abcdefghijklmnopqrstuvwxyz' })
+            .expect(403)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it('AUTH-AUTHORIZATION ERROR - No token', function (done) {
+        request(app)
+            .get('/secret')
+            .expect(403)
             .end((err, res) => {
                 if (err) return done(err);
                 done();
@@ -52,8 +143,8 @@ describe(`Testing Users api/v1`, function () {
                 if (err) return done(err);
                 token = token + res.body.token;
                 done();
-            })
-    })
+            });
+    });
     /**
      * GET
      */
@@ -574,6 +665,7 @@ describe(`Testing Periods api/v1`, function () {
     });
     //#endregion
 });
+
 
 function deleteUser(id) {
     request(app)

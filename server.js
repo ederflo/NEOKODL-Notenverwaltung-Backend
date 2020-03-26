@@ -43,7 +43,7 @@ function defaultSetup() {
     app.get('/', (req, res) => { res.send('Express is up and running.') });
     app.use(authController.verifyToken);
     app.use('/api/v1/periods', periodsRouter);
-    app.get('/secret', (req, res) => { res.send('Secret site') });
+    app.get('/secret', (req, res) => { res.status(200).send('Secret site') });
 
     const backendConfig = configManager.getBackendData();
 

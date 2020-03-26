@@ -81,7 +81,7 @@ router.delete('/:id', selectById, (req, res) => {
     }
     req.selectedPeriod.destroy()
         .then(() => {
-            res.status(200).send('Period deleted');
+            res.status(204).send();
         })
         .catch((err) => {
             err.statusCode = 500;

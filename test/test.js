@@ -9,11 +9,13 @@ const http = require('http');
 const app = require('../server');
 const request = require('supertest');
 
+const successUser = { username: 'CoolGuy', password: '12345', active: false };
+var token = "Bearer ";
+
 before(done => {
-    app.on( "app_started", function()
-  {
-    done();
-  })
+    app.on("app_started", function () {
+        done();
+    })
 })
 
 describe('Testing Server connection', function () {
@@ -30,12 +32,35 @@ describe('Testing Server connection', function () {
 
 // TODO: Too less properties test
 describe(`Testing Users api/v1`, function () {
+
+    it(`USR-POST SUCCESS`, function (done) {
+        request(app)
+            .post('/api/v1/users/')
+            .send(successUser)
+            .expect(201)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it('USR-LOGIN', function (done) {
+        request(app)
+            .post('/api/v1/auth/login')
+            .send({ username: successUser.username, password: successUser.password })
+            .expect(200)
+            .end((err, res) => {
+                if (err) return done(err);
+                token = token + res.body.token;
+                done();
+            })
+    })
     /**
      * GET
      */
     it(`USR-GET SUCCESS - All users`, function (done) {
         request(app)
-            .get('/api/v1/users/id')
+            .get('/api/v1/users')
+            .set({ Authorization: token })
             .expect(200)
             .end((err, res) => {
                 if (err) return done(err);
@@ -48,18 +73,30 @@ describe(`Testing Users api/v1`, function () {
                 return done(err);
             request(app)
                 .get(`/api/v1/users/${id}`)
+                .set({ Authorization: token })
                 .expect(200)
                 .end((err, res) => {
                     deleteUser(id);
-                    if (err) 
-                    	return done(err);
+                    if (err)
+                        return done(err);
                     done();
                 });
         });
     });
-    it(`USR-GET ERROR - Invalid id`, function (done) {
+    it(`USR-GET ERROR - Invalid id format`, function (done) {
         request(app)
             .get('/api/v1/users/d290f1ee-6c54-4b01-90e6-d701748fffff')
+            .set({ Authorization: token })
+            .expect(400)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`USR-GET ERROR - Invalid id`, function (done) {
+        request(app)
+            .get('/api/v1/users/999')
+            .set({ Authorization: token })
             .expect(404)
             .end((err, res) => {
                 if (err) return done(err);
@@ -69,21 +106,11 @@ describe(`Testing Users api/v1`, function () {
     /**
      * POST
      */
-    it(`USR-POST SUCCESS`, function (done) {
-        request(app)
-            .post('/api/v1/users/')
-            .send({ username: 'CoolGuy', password: '123', email: 'co@ol.guy' })
-            .expect(201)
-            .end((err, res) => {
-                if (err) return done(err);
-                done();
-            });
-    });
     it(`USR-POST ERROR - Already exists`, function (done) {
         request(app)
             .post('/api/v1/users/')
-            .send({ username: 'CoolGuy', password: '123', email: 'co@ol.guy' })
-            .expect(201)
+            .send({ username: 'CoolGuy', password: '12345', active: false })
+            .expect(400)
             .end((err, res) => {
                 if (err) return done(err);
                 done();
@@ -92,7 +119,7 @@ describe(`Testing Users api/v1`, function () {
     it(`USR-POST ERROR - Wrong property`, function (done) {
         request(app)
             .post('/api/v1/users/')
-            .send({ name: 'CoolGuy', password: '123', email: 'co@ol.guy' })
+            .send({ username: 'CoolGuy', password: '12345', email: 'mail@mail.com' })
             .expect(400)
             .end((err, res) => {
                 if (err) return done(err);
@@ -102,7 +129,7 @@ describe(`Testing Users api/v1`, function () {
     it(`USR-POST ERROR - Too many properties`, function (done) {
         request(app)
             .post('/api/v1/users/')
-            .send({ username: 'CoolGuy', password: '123', email: 'co@ol.guy', age: 17 })
+            .send({ username: 'CoolGuy', password: '12345', active: false, age: 17 })
             .expect(400)
             .end((err, res) => {
                 if (err) return done(err);
@@ -118,7 +145,8 @@ describe(`Testing Users api/v1`, function () {
                 return done(err);
             request(app)
                 .put(`/api/v1/users/${id}`)
-                .send({ username: 'OverWrite', password: '1234', email: 'invalid@e.mail' })
+                .set({ Authorization: token })
+                .send({ username: 'OverWrite', password: '12345', active: false })
                 .expect(200)
                 .end((err, res) => {
                     deleteUser(id);
@@ -130,7 +158,8 @@ describe(`Testing Users api/v1`, function () {
     it(`USR-PUT ERROR - Invalid id`, function (done) {
         request(app)
             .put(`/api/v1/users/d290f1ee-6c54-4b01-90e6-d701748fffff`)
-            .send({ username: 'ErrorWriteId', password: 'error', email: 'error@should-not.work' })
+            .set({ Authorization: token })
+            .send({ username: 'ErrorWriteId', password: 'error', active: false })
             .expect(400)
             .end((err, res) => {
                 if (err) return done(err);
@@ -143,12 +172,13 @@ describe(`Testing Users api/v1`, function () {
                 return done(err);
             request(app)
                 .put(`/api/v1/users/${id}`)
-                .send({ name: 'ErrorWriteProp', password: 'error', email: 'error@should-not.work' })
+                .set({ Authorization: token })
+                .send({ name: 'ErrorWriteProp', password: 'error', active: false })
                 .expect(400)
                 .end((err, res) => {
                     deleteUser(id);
-                    if (err) 
-                    	return done(err);
+                    if (err)
+                        return done(err);
                     done();
                 });
         });
@@ -159,12 +189,13 @@ describe(`Testing Users api/v1`, function () {
                 return done(err);
             request(app)
                 .put(`/api/v1/users/${id}`)
-                .send({ username: 'ErrorWriteArgs', password: 'error', email: 'error@should-not.work', age: 17 })
+                .set({ Authorization: token })
+                .send({ username: 'ErrorWriteArgs', password: 'error', active: false, age: 17 })
                 .expect(400)
                 .end((err, res) => {
                     deleteUser(id);
-                    if (err) 
-                    	return done(err);
+                    if (err)
+                        return done(err);
                     done();
                 });
         });
@@ -178,12 +209,13 @@ describe(`Testing Users api/v1`, function () {
                 return done(err);
             request(app)
                 .patch(`/api/v1/users/${id}`)
+                .set({ Authorization: token })
                 .send({ username: 'OverPatchName' })
                 .expect(200)
                 .end((err, res) => {
                     deleteUser(id);
-                    if (err) 
-                    	return done(err);
+                    if (err)
+                        return done(err);
                     done();
                 });
         });
@@ -194,12 +226,13 @@ describe(`Testing Users api/v1`, function () {
                 return done(err);
             request(app)
                 .patch(`/api/v1/users/${id}`)
-                .send({ username: 'OverPatchAll', password: '1234', email: 'over@patchworks.com' })
+                .set({ Authorization: token })
+                .send({ username: 'OverPatchAll', password: '1234', active: false })
                 .expect(200)
                 .end((err, res) => {
                     deleteUser(id);
-                    if (err) 
-                    	return done(err);
+                    if (err)
+                        return done(err);
                     done();
                 });
         });
@@ -207,7 +240,8 @@ describe(`Testing Users api/v1`, function () {
     it(`USR-PATCH ERROR - Invalid id`, function (done) {
         request(app)
             .patch(`/api/v1/users/d290f1ee-6c54-4b01-90e6-d701748fffff`)
-            .send({ username: 'PatchWritePatch', password: 'error', email: 'error@should-not.work' })
+            .set({ Authorization: token })
+            .send({ username: 'PatchWritePatch', password: 'error', active: false })
             .expect(400)
             .end((err, res) => {
                 if (err) return done(err);
@@ -220,12 +254,13 @@ describe(`Testing Users api/v1`, function () {
                 return done(err);
             request(app)
                 .patch(`/api/v1/users/${id}`)
-                .send({ name: 'PatchWriteProp', password: 'error', email: 'error@should-not.work' })
+                .set({ Authorization: token })
+                .send({ name: 'PatchWriteProp', password: 'error', active: false })
                 .expect(400)
                 .end((err, res) => {
                     deleteUser(id);
-                    if (err) 
-                    	return done(err);
+                    if (err)
+                        return done(err);
                     done();
                 });
         });
@@ -236,12 +271,13 @@ describe(`Testing Users api/v1`, function () {
                 return done(err);
             request(app)
                 .patch(`/api/v1/users/${id}`)
-                .send({ username: 'PatchWriteArgs', password: 'error', email: 'error@should-not.work', age: 17 })
+                .set({ Authorization: token })
+                .send({ username: 'PatchWriteArgs', password: 'error', active: false, age: 17 })
                 .expect(400)
                 .end((err, res) => {
                     deleteUser(id);
-                    if (err) 
-                    	return done(err);
+                    if (err)
+                        return done(err);
                     done();
                 });
         });
@@ -255,10 +291,11 @@ describe(`Testing Users api/v1`, function () {
                 return done(err);
             request(app)
                 .delete(`/api/v1/users/${id}`)
-                .expect(204)
+                .set({ Authorization: token })
+                .expect(200)
                 .end((err, res) => {
-                    if (err) 
-                    	return done(err);
+                    if (err)
+                        return done(err);
                     done();
                 });
         });
@@ -266,7 +303,8 @@ describe(`Testing Users api/v1`, function () {
     it(`USR-DELETE ERROR - Invalid id`, function (done) {
         request(app)
             .delete(`/api/v1/users/d290f1ee-6c54-4b01-90e6-d701748fffff`)
-            .send({ username: 'PatchWritePatch', password: 'error', email: 'error@should-not.work' })
+            .set({ Authorization: token })
+            .send({ username: 'PatchWritePatch', password: 'error', active: false })
             .expect(400)
             .end((err, res) => {
                 if (err) return done(err);
@@ -281,6 +319,7 @@ describe(`Testing Periods api/v1`, function () {
     it(`PRD-GET SUCCESS - All periods`, function (done) {
         request(app)
             .get('/api/v1/periods')
+            .set({ Authorization: token })
             .expect(200)
             .end((err, res) => {
                 if (err) return done(err);
@@ -295,6 +334,7 @@ describe(`Testing Periods api/v1`, function () {
             }
             request(app)
                 .get(`/api/v1/periods/${id}`)
+                .set({ Authorization: token })
                 .expect(200)
                 .end((err, res) => {
                     deletePeriod(id)
@@ -309,6 +349,7 @@ describe(`Testing Periods api/v1`, function () {
         let id = -1;
         request(app)
             .get(`/api/v1/periods/${id}`)
+            .set({ Authorization: token })
             .expect(404)
             .end((err, res) => {
                 if (err) return done(err);
@@ -318,37 +359,21 @@ describe(`Testing Periods api/v1`, function () {
     //#endregion
     //#region Post
     it(`PRD-POST ONE SUCCESS - Create one`, function (done) {
-        let idToDelete;
         request(app)
             .post(`/api/v1/periods`)
-            .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
+            .set({ Authorization: token })
+            .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000), from: '2020-02-27', till: '2022-03-02', active: false, archived: false })
             .expect(201)
             .end((err, res) => {
-                deletePeriod(id);
+                deletePeriod(res.body.id);
                 if (err) return done(err);
                 done();
             });
     });
-    it(`PRD-POST ONE ERROR - Already exists`, function (done) {
-        let label = 'AlreadyExistsPeriod';
-        createPeriod((err, id) => {
-            if (err) {
-                return done(err);
-            }
-            request(app)
-                .post(`/api/v1/periods`)
-                .send({ label: label, from: new Date('2020-27-02'), till: new Date('2022-27-03') })
-                .expect(409)
-                .end((err, res) => {
-                    deletePeriod(id);
-                    if (err) return done(err);
-                    done();
-                });
-        }, label);
-    });
     it(`PRD-POST ONE ERROR - Wrong amount of arguments`, function (done) {
         request(app)
             .post(`/api/v1/periods`)
+            .set({ Authorization: token })
             .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000) })
             .expect(400)
             .end((err, res) => {
@@ -359,6 +384,7 @@ describe(`Testing Periods api/v1`, function () {
     it(`PRD-POST ONE ERROR - Wrong agruments`, function (done) {
         request(app)
             .post(`/api/v1/periods`)
+            .set({ Authorization: token })
             .send({ name: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
             .expect(400)
             .end((err, res) => {
@@ -374,7 +400,8 @@ describe(`Testing Periods api/v1`, function () {
                 return done(err);
             request(app)
                 .put(`/api/v1/periods/${id}`)
-                .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
+                .set({ Authorization: token })
+                .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000), from: '2020-02-27', till: '2022-03-02', active: false, archived: false })
                 .expect(200)
                 .end((err, res) => {
                     deletePeriod(id);
@@ -387,8 +414,9 @@ describe(`Testing Periods api/v1`, function () {
         let id = -1;
         request(app)
             .put(`/api/v1/periods/${id}`)
-            .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
-            .expect(400)
+            .set({ Authorization: token })
+            .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000), from: '2020-02-27', till: '2022-03-02', active: false, archived: false })
+            .expect(404)
             .end((err, res) => {
                 if (err) return done(err);
                 done();
@@ -400,6 +428,7 @@ describe(`Testing Periods api/v1`, function () {
                 return done(err);
             request(app)
                 .put(`/api/v1/periods/${id}`)
+                .set({ Authorization: token })
                 .send({ name: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
                 .expect(400)
                 .end((err, res) => {
@@ -415,6 +444,7 @@ describe(`Testing Periods api/v1`, function () {
                 return done(err);
             request(app)
                 .put(`/api/v1/periods/${id}`)
+                .set({ Authorization: token })
                 .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03'), duration: '2 years 1 month' })
                 .expect(400)
                 .end((err, res) => {
@@ -432,7 +462,8 @@ describe(`Testing Periods api/v1`, function () {
                 return done(err);
             request(app)
                 .patch(`/api/v1/periods/${id}`)
-                .send({ label: 'NewTestPeriod' + Math.floor(Math.random() * 1000)})
+                .set({ Authorization: token })
+                .send({ label: 'NewTestPeriod' + Math.floor(Math.random() * 1000) })
                 .expect(200)
                 .end((err, res) => {
                     deletePeriod(id)
@@ -447,7 +478,8 @@ describe(`Testing Periods api/v1`, function () {
                 return done(err);
             request(app)
                 .patch(`/api/v1/periods/${id}`)
-                .send({ label: 'NewTestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
+                .set({ Authorization: token })
+                .send({ label: 'NewTestPeriod' + Math.floor(Math.random() * 1000), from: '2020-02-27', till: '2022-03-02', active: false, archived: false })
                 .expect(200)
                 .end((err, res) => {
                     deletePeriod(id)
@@ -460,8 +492,9 @@ describe(`Testing Periods api/v1`, function () {
         let id = -1;
         request(app)
             .patch(`/api/v1/periods/${id}`)
-            .send({ label: 'NewTestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
-            .expect(400)
+            .set({ Authorization: token })
+            .send({ label: 'NewTestPeriod' + Math.floor(Math.random() * 1000), from: '2020-02-27', till: '2022-03-02' })
+            .expect(404)
             .end((err, res) => {
                 if (err) return done(err);
                 done();
@@ -473,6 +506,7 @@ describe(`Testing Periods api/v1`, function () {
                 return done(err);
             request(app)
                 .patch(`/api/v1/periods/${id}`)
+                .set({ Authorization: token })
                 .send({ name: 'shouldNotWork' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
                 .expect(400)
                 .end((err, res) => {
@@ -488,6 +522,7 @@ describe(`Testing Periods api/v1`, function () {
                 return done(err);
             request(app)
                 .patch(`/api/v1/periods/${id}`)
+                .set({ Authorization: token })
                 .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03'), duration: '2 years 1 month' })
                 .expect(400)
                 .end((err, res) => {
@@ -506,6 +541,7 @@ describe(`Testing Periods api/v1`, function () {
             }
             request(app)
                 .delete(`/api/v1/periods/${id}`)
+                .set({ Authorization: token })
                 .expect(200)
                 .end((err, res) => {
                     if (err) return done(err);
@@ -517,6 +553,7 @@ describe(`Testing Periods api/v1`, function () {
         let id = -1;
         request(app)
             .delete(`/api/v1/periods/${id}`)
+            .set({ Authorization: token })
             .expect(404)
             .end((err, res) => {
                 if (err) return done(err);
@@ -527,20 +564,22 @@ describe(`Testing Periods api/v1`, function () {
 });
 
 function deleteUser(id) {
-	request(app)
-		.delete(`/api/v1/users/${id}`)
-		.end((err, res) => {
-			if (err) 
-				assert.fail(err);
-		}); 
+    request(app)
+        .delete(`/api/v1/users/${id}`)
+        .set({ Authorization: token })
+        .end((err, res) => {
+            if (err)
+                assert.fail(err);
+        });
 }
 
 function deletePeriod(id) {
     request(app)
         .delete(`/api/v1/periods/${id}`)
+        .set({ Authorization: token })
         .end((err, res) => {
             if (err)
-            	assert.fail(err);
+                assert.fail(err);
         });
 }
 
@@ -551,10 +590,13 @@ function createPeriod(callback, label) {
     }
     request(app)
         .post(`/api/v1/periods`)
+        .set({ Authorization: token })
         .send({
             label: label,
-            from: Date.now(),
-            till: new Date('2022-27-03')
+            from: "2020-03-26",
+            till: "2022-07-30",
+            active: false,
+            archived: false
         })
         .end((err, res) => {
             if (!res.body.id) {
@@ -570,7 +612,7 @@ function createRandomUser(callback) {
         .send({
             username: 'RandUser' + Math.floor(Math.random() * 1000),
             password: '0000',
-            email: 'user@random.org'
+            active: false
         })
         .end((err, res) => {
             if (err)

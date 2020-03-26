@@ -14,7 +14,7 @@ const key = crypto.randomBytes(32);
 const iv = crypto.randomBytes(16);
 const secret = 'Bearer';
 
-controller.login = async function(req, res) { 
+controller.login = async function (req, res) {
     let credentials = req.body;
     let token = '';
 
@@ -26,7 +26,7 @@ controller.login = async function(req, res) {
 
     let userFromDb = null;
     try {
-        userFromDb = await User.findOne({ where: { username: credentials.username} });
+        userFromDb = await User.findOne({ where: { username: credentials.username } });
         if (userFromDb == null) {
             res.status(401).send('Authentication failed!');
             console.log('Access denied! User does not exist');
@@ -39,16 +39,16 @@ controller.login = async function(req, res) {
         token = generateUserToken(userFromDb);
         userFromDb.status = 'online';
         await userFromDb.save();
-        res.status(200).send({'token': token});
-    } catch(err) {
+        res.status(200).send({ 'token': token });
+    } catch (err) {
 
     }
 };
 
-controller.verifyToken = async function(req, res, next) {
+controller.verifyToken = async function (req, res, next) {
     let bearerHeader = req.headers['authorization'];
     let decryptedToken = undefined;
-    if(!bearerHeader || typeof(bearerHeader) != 'string' || bearerHeader.length <= 0) {
+    if (!bearerHeader || typeof (bearerHeader) != 'string' || bearerHeader.length <= 0) {
         res.status(403).send('Forbidden!');
         return;
     }
@@ -73,13 +73,13 @@ controller.verifyToken = async function(req, res, next) {
         'id': decryptedToken.id,
         'username': decryptedToken.username,
     }
-    req.body.user = user;
+    req.authUser = user;
     next();
 }
 
 function checkValidLoginPayload(payload) {
     let isValid = false;
-    if(Object.keys(payload).length == 2) {
+    if (Object.keys(payload).length == 2) {
         if (payload['username'] != undefined && payload['password'] != undefined) {
             isValid = true;
         }
@@ -88,7 +88,7 @@ function checkValidLoginPayload(payload) {
 }
 
 function generateUserToken(userFromDb) {
-    return jwt.sign({ id: userFromDb.id, username: userFromDb.username }, 'neokodl', {expiresIn: '3h'});
+    return jwt.sign({ id: userFromDb.id, username: userFromDb.username }, 'neokodl', { expiresIn: '3h' });
 }
 
 module.exports = controller;

@@ -18,20 +18,22 @@ const router = express.Router();
 const db = require('../Services/database');
 const User = db.model('User');
 const authController = require('../Authentication/AuthenticationController');
+const AppError = require('../Services/error-management').AppError;
+const handleError = require('../Services/error-management').handleError;
 
 router.get('/', authController.verifyToken, (req, res) => {
     User.findAll()
         .then((users) => {
             let length = users.length;
-            for(let i = 0; i < length; i++){
+            for (let i = 0; i < length; i++) {
                 users[i].password = undefined;
             }
             res.status(200).json(users);
         })
         .catch((err) => {
-            console.error(err);
-            res.status(500).send('Something went wrong');
-    });
+            err.statusCode = 500;
+            handleError(err, req, res);
+        });
 });
 
 router.get('/:id', authController.verifyToken, selectById, (req, res) => {
@@ -47,9 +49,9 @@ router.post('/', (req, res) => {
             res.status(201).json(user);
         })
         .catch((err) => {
-            console.error(err);
-            res.status(500).send('Could not create user');
-    });
+            err.statusCode = 400;
+            handleError(err, req, res);
+        });
 });
 
 router.put('/:id', authController.verifyToken, selectById, validateCompleteUser, doUpdate);
@@ -62,26 +64,29 @@ router.delete('/:id', authController.verifyToken, selectById, (req, res) => {
             res.status(200).send('User deleted');
         })
         .catch((err) => {
-            console.log(err);
-            res.status(500).send('Something went wrong');
-    });
+            err.statusCode = 500;
+            handleError(err, req, res);
+        });
 });
 
 function selectById(req, res, next) {
-    User.findOne({ where: { id: req.params.id } })
+    let reqId = parseInt(req.params.id);
+    if (isNaN(reqId)) {
+        throw new AppError(400, 'Given id was not a number.');
+    }
+    User.findOne({ where: { id: reqId } })
         .then(user => {
             if (user == null) {
-                res.status(404).send('Not found');
-                return;
+                throw new AppError(404, 'Not found');
             }
             req.selectedUser = user;
             next();
         })
         .catch(err => {
-            console.error(err);
-            res.status(500).send('Something went wrong');
+            err.statusCode = 404;
+            handleError(err, req, res);
             return;
-    });
+        });
 }
 function validateCompleteUser(req, res, next) {
     validateUserObjectForUpdate(req, res, next, true);
@@ -95,19 +100,17 @@ function validateUserObjectForUpdate(req, res, next, fullUpdate) {
     delete compareUser.id;
     delete compareUser.createdAt;
     delete compareUser.updatedAt;
+    delete req.body.user;
 
     if (fullUpdate) {
         if (Object.keys(compareUser).length != Object.keys(req.body).length) {
-            res.status(400).send('number o properties in object not valid');
-            return;
+            throw new AppError(400, 'number o properties in object not valid');
         }
     }
 
     if (Object.keys(req.body).some(k => { return compareUser[k] == undefined; })) {
-        res.status(400).send('properties of object do not match');
-        return;
+        throw new AppError(400, 'number o properties in object not valid');
     }
-
     next();
 }
 function doUpdate(req, res) {
@@ -117,8 +120,8 @@ function doUpdate(req, res) {
             res.status(200).json(user);
         })
         .catch((err) => {
-            console.error(err);
-            res.status(500).send('Something went wrong');
-    });
+            err.statusCode = 500;
+            handleError(err, req, res);
+        });
 }
 module.exports = router;

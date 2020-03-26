@@ -26,6 +26,7 @@ async function connectToDb() {
     try {
         db = require('./Services/database');
         await db.connect(configManager.getDataBaseConfig());
+        console.log('Connection to the database has been established successfully.');
         defaultSetup();
     } catch (err) {
         errorSetup(err);

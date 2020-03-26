@@ -7,11 +7,14 @@ const cors = require('cors');
 const configManager = require('./Services/configManager');
 
 const app = express();
-let configPath = process.argv[2];
+let configPath;
+if (process.argv[2] == './test/test.js') configPath = process.argv[3];
+else configPath = process.argv[2];
 
 try {
     if (configPath)
         configPath = './../configs/' + configPath + ".json";
+    console.error(process.argv[0]);
     configManager.loadConfig(configPath);
 } catch (err) {
     console.error('Cannot load config file: ' + configPath + '! Server is using default config file!');

@@ -4,7 +4,7 @@
   "description": "Notenverwaltung von Enderlon ohne Kreuzer oba dafür mit Loris",
   "main": "server.js",
   "scripts": {
-    "test": "mocha",
+    "test": "mocha ./test/test.js",
     "start": "node server.js"
   },
   "repository": {

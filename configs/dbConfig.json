@@ -1,9 +1,0 @@
-{
-    "user" : "neokodladmin",
-    "password" : "admin",
-    "database" : "Neokodl",
-    "options" : {
-        "host" : "neokodl",
-        "dialect" : "mssql"
-    }
-}

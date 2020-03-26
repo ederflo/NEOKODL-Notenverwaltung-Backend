@@ -2,9 +2,9 @@
 
 const express = require('express');
 const bodyparser = require('body-parser');
-const db = require('./Services/database');
 const cors = require('cors');
 const configManager = require('./Services/configManager');
+var db;
 
 const app = express();
 let configPath;
@@ -24,7 +24,8 @@ connectToDb();
 
 async function connectToDb() {
     try {
-        await db.connect();
+        db = require('./Services/database');
+        await db.connect(configManager.getDataBaseConfig());
         defaultSetup();
     } catch (err) {
         errorSetup(err);

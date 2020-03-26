@@ -381,6 +381,18 @@ describe(`Testing Periods api/v1`, function () {
                 done();
             });
     });
+    it(`PRD-POST ON ERROR - TILL BEFORE FROM`, function (done) {
+        request(app)
+            .post(`/api/v1/periods`)
+            .set({ Authorization: token })
+            .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000), from: '2022-03-02', till: '2020-02-27', active: false, archived: false })
+            .expect(400)
+            .end((err, res) => {
+                deletePeriod(res.body.id);
+                if (err) return done(err);
+                done();
+            });
+    });
     it(`PRD-POST ONE ERROR - Wrong agruments`, function (done) {
         request(app)
             .post(`/api/v1/periods`)

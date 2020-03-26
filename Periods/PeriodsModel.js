@@ -1,4 +1,6 @@
 'use strict';
+const AppError = require('../Services/error-management').AppError;
+
 module.exports = (sequelize, DataTypes) => {
   var Period = sequelize.define('Period', {
     label: {
@@ -7,12 +9,19 @@ module.exports = (sequelize, DataTypes) => {
       validate: { len: [4, 20] }
     },
     from: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
       allowNull: false
     },
     till: {
-      type: DataTypes.DATE,
-      allowNull: false
+      type: DataTypes.DATEONLY,
+      allowNull: false,
+      validate: {
+        fromBeforeTill: function (value) {
+          if (new Date(this.from).getTime() >= new Date(this.till).getTime()) {
+            throw new AppError(400, 'From must before till!');
+          }
+        }
+      }
     },
     active: {
       type: DataTypes.BOOLEAN,

@@ -73,7 +73,7 @@ controller.verifyToken = async function (req, res, next) {
         'id': decryptedToken.id,
         'username': decryptedToken.username,
     }
-    req.body.user = user;
+    req.authUser = user;
     next();
 }
 

@@ -34,7 +34,11 @@ module.exports = (sequelize, DataTypes) => {
   });
 
   Period.associate = function (models) {
-    models.Period.hasMany(models.Task);
+    models.Period.belongsTo(models.User, {
+      foreignKey: {
+        allowNull: false
+      }
+    });
   };
 
   return Period;

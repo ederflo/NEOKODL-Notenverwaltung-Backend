@@ -22,7 +22,7 @@ const AppError = require('../Services/error-management').AppError;
 const handleError = require('../Services/error-management').handleError;
 
 router.get('/', (req, res) => {
-    Period.findAll()
+    Period.findAll({ where: { UserId: req.authUser.id } })
         .then((periods) => {
             res.status(200).json(periods);
         })
@@ -39,7 +39,8 @@ router.get('/:id', selectById, (req, res) => {
 router.post('/', (req, res) => {
     delete req.body.id;
     var period = req.body;
-    Period.findAndCountAll({ where: { active: true } })
+    period.UserId = req.authUser.id;
+    Period.findAndCountAll({ where: { active: true, UserId: req.authUser.id } })
         .then((seqObject) => {
             if (seqObject.count === 0) {
                 period.active = true;
@@ -122,7 +123,7 @@ function selectById(req, res, next) {
     if (isNaN(reqId)) {
         throw new AppError(400, 'Given id was not a number.');
     }
-    Period.findOne({ where: { id: reqId } })
+    Period.findOne({ where: { id: reqId, UserId: req.authUser.id } })
         .then(period => {
             if (period == null) {
                 throw new AppError(404, 'Not found');
@@ -146,6 +147,7 @@ function validatePeriodObjectForUpdate(req, res, next, fullUpdate) {
     let comparePeriod = req.selectedPeriod.toJSON();
 
     let user = req.body.user;
+    req.body.UserId = req.authUser.id;
     delete comparePeriod.id;
     delete comparePeriod.createdAt;
     delete comparePeriod.updatedAt;

@@ -27,10 +27,6 @@ module.exports = (sequelize, DataTypes) => {
         }
     });
 
-    User.associate = function (models) {
-        models.User.hasMany(models.Task);
-    };
-
     function generateHash(user) {
         if (user === null) {
             throw new Error('No user given!');

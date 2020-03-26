@@ -46,10 +46,14 @@ router.post('/', (req, res) => {
             } else {
                 if (period.active) {
                     throw new AppError(400, 'Cannot create another active period.');
+                } else if (period.active == null) {
+                    period.active = false;
                 }
             }
             if (period.archived == true) {
                 throw new AppError(400, 'Cannot create archived period.');
+            } else if (period.archived == null) {
+                period.archived = false;
             }
             Period.create(period)
                 .then((createdPeriod) => {

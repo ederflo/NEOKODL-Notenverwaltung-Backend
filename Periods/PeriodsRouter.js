@@ -18,6 +18,8 @@ const express = require('express');
 const router = express.Router();
 const db = require('../Services/database');
 const Period = db.model('Period');
+const AppError = require('../Services/error-management').AppError;
+const handleError = require('../Services/error-management').handleError;
 
 router.get('/', (req, res) => {
     Period.findAll()
@@ -25,8 +27,8 @@ router.get('/', (req, res) => {
             res.status(200).json(periods);
         })
         .catch((err) => {
-            console.error(err);
-            res.status(500).send('Something went wrong');
+            err.statusCode = 500;
+            handleError(err, req, res);
         });
 });
 
@@ -37,32 +39,30 @@ router.get('/:id', selectById, (req, res) => {
 router.post('/', (req, res) => {
     delete req.body.id;
     var period = req.body;
-    Period.findAndCountAll({where: {active: true}})
+    Period.findAndCountAll({ where: { active: true } })
         .then((seqObject) => {
-            if(seqObject.count === 0){
+            if (seqObject.count === 0) {
                 period.active = true;
             } else {
-                if(period.active){
-                    res.status(400).send('Cannot create another active period.');
-                    return;
+                if (period.active) {
+                    throw new AppError(400, 'Cannot create another active period.');
                 }
             }
-            if(period.archived === true){
-                res.status(400).send('Cannot create archived period.');
-                return;
+            if (period.archived == true) {
+                throw new AppError(400, 'Cannot create archived period.');
             }
             Period.create(period)
                 .then((createdPeriod) => {
                     res.status(201).json(createdPeriod);
                 })
                 .catch((err) => {
-                    console.error(err);
-                    res.status(500).send('Could not create period');
+                    err.statusCode = 400;
+                    handleError(err, req, res);
                 });
         })
         .catch((err) => {
-            res.send(500).send('Something broke.');
-            console.error(err);
+            err.statusCode = 400;
+            handleError(err, req, res);
         })
 });
 
@@ -71,62 +71,64 @@ router.put('/:id', selectById, validateCompletePeriod, doUpdate);
 router.patch('/:id', selectById, validatePartialPeriod, doUpdate);
 
 router.delete('/:id', selectById, (req, res) => {
-    if(req.selectedPeriod.active){
-        res.status(400).send('Cannot delete active period.');
-        return;
+    if (req.selectedPeriod.active) {
+        throw new AppError(400, 'Cannot delete active period.');
     }
     req.selectedPeriod.destroy()
         .then(() => {
             res.status(200).send('Period deleted');
         })
         .catch((err) => {
-            console.log(err);
-            res.status(500).send('Something went wrong');
+            err.statusCode = 500;
+            handleError(err, req, res);
         });
 });
 
 router.patch('/activate/:id', selectById, (req, res) => {
-    if(req.selectedPeriod.archived === true){
-        res.status(400).send('Cannot activate an archived period.');
+    if (req.selectedPeriod.archived === true) {
+        throw new AppError(400, 'Cannot activate an archived period.');
     } else {
         Period.findOne({ where: { active: true } })
-        .then(previouslyActivePeriod => {
-            if(req.selectedPeriod.id == previouslyActivePeriod.id){
-                res.status(400).send('Period is already active.');
-                return;
-            }
-            previouslyActivePeriod.update({active: false});
+            .then(previouslyActivePeriod => {
+                if (req.selectedPeriod.id == previouslyActivePeriod.id) {
+                    throw new AppError(400, 'Period is already active.');
+                }
+                previouslyActivePeriod.update({ active: false });
 
-            req.selectedPeriod.update({active: true})
-                .then((activatedPeriod) => {
-                    res.status(200).json(activatedPeriod);
-                })
-                .catch((err) => {
-                    res.status(500).send('Something went wrong. Cannot change active period.');
-                    console.log(err);
-                    previouslyActivePeriod.update({active: true});
-                })
-        })
-        .catch((err) => {
-            res.status(500).send('Something went wrong.');
-            console.error(err);
-        })
+                req.selectedPeriod.update({ active: true })
+                    .then((activatedPeriod) => {
+                        res.status(200).json(activatedPeriod);
+                    })
+                    .catch((err) => {
+                        err.statusCode = 500;
+                        err.userMessage = 'Something went wrong. Cannot change active period.';
+                        handleError(err, req, res);
+                        previouslyActivePeriod.update({ active: true });
+                    })
+            })
+            .catch((err) => {
+                err.statusCode = 500;
+                handleError(err, req, res);
+            })
     }
 });
 
 function selectById(req, res, next) {
-    Period.findOne({ where: { id: req.params.id } })
+    let reqId = parseInt(req.params.id);
+    if (isNaN(reqId)) {
+        throw new AppError(400, 'Given id was not a number.');
+    }
+    Period.findOne({ where: { id: reqId } })
         .then(period => {
             if (period == null) {
-                res.status(404).send('Not found');
-                return;
+                throw new AppError(404, 'Not found');
             }
             req.selectedPeriod = period;
             next();
         })
         .catch(err => {
-            console.error(err);
-            res.status(500).send('Something went wrong');
+            err.statusCode = 404;
+            handleError(err, req, res);
             return;
         });
 }
@@ -147,27 +149,23 @@ function validatePeriodObjectForUpdate(req, res, next, fullUpdate) {
 
     if (fullUpdate) {
         if (Object.keys(comparePeriod).length != Object.keys(req.body).length) {
-            res.status(400).send('number o properties in object not valid');
-            return;
+            throw new AppError(400, 'number o properties in object not valid');
         }
     }
 
     if (Object.keys(req.body).some(k => { return comparePeriod[k] == undefined; })) {
-        res.status(400).send('properties of object do not match');
-        return;
+        throw new AppError(400, 'properties of object do not match');
     }
 
-    if(req.body.active != undefined){
-        if(comparePeriod.active != req.body.active){
-            res.status(400).send('Cannot set field: active of period on this route.');
-            return;
+    if (req.body.active != undefined) {
+        if (comparePeriod.active != req.body.active) {
+            throw new AppError(400, 'Cannot set field: active of period on this route.');
         }
     }
-    if(req.body.archived != undefined){
-        if(comparePeriod.archived != req.body.archived){
+    if (req.body.archived != undefined) {
+        if (comparePeriod.archived != req.body.archived) {
             if (req.selectedPeriod.active) {
-                res.status(400).send('Cannot archive an active period.');
-                return;
+                throw new AppError(400, 'Cannot archive an active period.');
             }
         }
     }
@@ -181,8 +179,8 @@ function doUpdate(req, res) {
             res.status(200).json(period);
         })
         .catch((err) => {
-            console.error(err);
-            res.status(500).send('Something went wrong');
+            err.statusCode = 500;
+            handleError(err, req, res);
         });
 }
 module.exports = router;

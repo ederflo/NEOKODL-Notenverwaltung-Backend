@@ -7,12 +7,12 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false,
             unique: true,
-            validate: { len: [4, 50]}
+            validate: { len: [4, 50] }
         },
         password: {
             type: DataTypes.STRING,
             allowNull: false,
-            validate: { len: [4, 50]}
+            validate: { len: [4, 200] }
         },
         active: {
             type: DataTypes.BOOLEAN,
@@ -20,13 +20,13 @@ module.exports = (sequelize, DataTypes) => {
         }
     }, {
         instanceMethods: {
-          validPassword: async function (password) {
-            return await bcrypt.compare(password, this.password)
-          }
+            validPassword: async function (password) {
+                return await bcrypt.compare(password, this.password)
+            }
         }
     });
 
-    User.associate = function(models) {
+    User.associate = function (models) {
         models.User.hasMany(models.Task);
     };
 
@@ -34,7 +34,7 @@ module.exports = (sequelize, DataTypes) => {
         if (user === null) {
             throw new Error('No user given!');
         }
-        else if (!user.changed('password')) 
+        else if (!user.changed('password'))
             return user.password;
         else {
             let salt = bcrypt.genSaltSync();

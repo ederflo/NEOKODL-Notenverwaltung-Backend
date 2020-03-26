@@ -9,7 +9,7 @@ const sequelize = new Sequelize(dbConfig.database, dbConfig.username, dbConfig.p
 const connect = async () => {
   try {
     await sequelize.authenticate();
-    await sequelize.sync({force: true});
+    await sequelize.sync({ force: true });
 
     console.log('Connection to the database has been established successfully.');
   }
@@ -25,10 +25,10 @@ const User = sequelize.import('./../Users/UserModel');
 const Period = sequelize.import('./../Periods/PeriodsModel');
 
 const database = {
-    sequelize: sequelize,
-    models: {User, Period},
-    connect,
-    model
+  sequelize: sequelize,
+  models: { User, Period },
+  connect,
+  model
 };
 
 module.exports = database;

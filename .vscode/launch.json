@@ -6,7 +6,10 @@
     "compounds": [
         {
             "name": "Open with Browser",
-            "configurations": ["Launch Chrome", "Launch Node"]
+            "configurations": [
+                "Launch Chrome",
+                "Launch Node"
+            ]
         }
     ],
     "configurations": [

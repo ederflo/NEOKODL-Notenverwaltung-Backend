@@ -61,6 +61,7 @@ function defaultSetup() {
     });
 }
 function errorSetup(err) {
+    const backendConfig = configManager.getBackendData();
     app.use('*', (req, res) => { res.status(500).send('This page is currently unavaliable. Please try it later again!') });
     app.listen(backendConfig.port, backendConfig.hostname, () => {
         console.error('Server is up and running but an error occured: ' + err);

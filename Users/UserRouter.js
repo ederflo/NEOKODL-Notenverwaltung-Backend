@@ -61,7 +61,7 @@ router.patch('/:id', authController.verifyToken, selectById, validatePartialUser
 router.delete('/:id', authController.verifyToken, selectById, (req, res) => {
     req.selectedUser.destroy()
         .then(() => {
-            res.status(200).send('User deleted');
+            res.status(204).send();
         })
         .catch((err) => {
             err.statusCode = 500;

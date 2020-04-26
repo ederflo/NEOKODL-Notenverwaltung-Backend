@@ -6,7 +6,7 @@ const handleError = require('../Services/error-management').handleError;
 
 router.get('/', (req, res) => {
             res.status(200).json(
-                `{
+                `[
                     {
                         "id": 1,
                         "label": "4BHIF SYP",
@@ -28,7 +28,7 @@ router.get('/', (req, res) => {
                         "discription": "Gruppe 1 von 4BHIF"
                     }
                     
-                }`
+                ]`
             );
 });
 

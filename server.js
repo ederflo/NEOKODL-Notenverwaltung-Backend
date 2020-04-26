@@ -34,9 +34,10 @@ async function connectToDb() {
 }
 
 function defaultSetup() {
-    const userRouter = require('./Users/UserRouter');
+    const userRouter = require('./users/UserRouter');
     const periodsRouter = require('./Periods/PeriodsRouter');
     const authController = require('./Authentication/AuthenticationController');
+    const organizationalUnitsRouter = require('./organizationalUnits/OrganizationalUnitsRouter');
     const errorManager = require('./Services/error-management').errorHandler;
 
     const corsOptions = configManager.getCorsData();
@@ -48,6 +49,7 @@ function defaultSetup() {
     app.get('/', (req, res) => { res.send('Express is up and running.') });
     app.use(authController.verifyToken);
     app.use('/api/v1/periods', periodsRouter);
+    app.use('/api/v1/ou', organizationalUnitsRouter);
     app.get('/secret', (req, res) => { res.status(200).send('Secret site') });
 
     const backendConfig = configManager.getBackendData();

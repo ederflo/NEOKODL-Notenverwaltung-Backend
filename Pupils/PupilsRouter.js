@@ -5,17 +5,17 @@ const AppError = require('../Services/error-management').AppError;
 const handleError = require('../Services/error-management').handleError;
 
 router.get('/', (req, res) => {
-            res.status(200).json([{"id":1,"label":"4BHIF SYP","description":"Ganze Klasse"},{"id":2,"label":"2AHTT AM","description":"Mathematik de scheiß Baukinder"},{"id":3,"label":"4BHIF English","description": "Slu: discription"},{"id":4,"label":"4BHIF POS G1","description":"Gruppe 1 von 4BHIF"}]);
+    res.status(200).json([{"id":"1","email":"exampleMail@mail.com","birthdt":"27.04.2020","firstname":"Karli","lastname":"Kolumbus","notes":"Wofür is dieses Feld eigentlich do?"},{"id":"2","email":"exampleNail@nail.com","birthdt":"27.04.2020","firstname":"Karlo","lastname":"Astro","notes":"Die Frage bleibt bestehen."},{"id":"3","email":"exampleXail@xail.com","birthdt":"27.04.2020","firstname":"Karle","lastname":"Kolumbe","notes":"Die Frage."}]);
 });
 
 router.get('/:id', selectById, (req, res) => {
-    res.status(200).json(req.selectedOrganizationalUnit);
+    res.status(200).json(req.selectedPupil);
 });
 
 router.post('/', (req, res) => {
     delete req.body.id;
-    var organizationalUnit = req.body;
-    res.status(201).json(organizationalUnit);
+    var pupil = req.body;
+    res.status(201).json(pupil);
 });
 
 router.delete('/:id', selectById, (req, res) => {
@@ -32,7 +32,14 @@ function selectById(req, res, next) {
         handleError(err, req, res);
         return;
     }
-    req.selectedOrganizationalUnit = { id: 1, label: '4BHIF SYP', description: 'Ganze Klasse'}
+    req.selectedPupil = { 
+        id: 1, 
+        email: 'exampleMail@mail.com', 
+        birthdt: '27.04.2020',
+        firstname: "Karli",
+        lastname: "Kolumbus",
+        notes: "Wofür is dieses Feld eigentlich do?"
+    };
     next();
 }
 

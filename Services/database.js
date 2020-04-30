@@ -9,7 +9,7 @@ const sequelize = new Sequelize(dbConfig.database, dbConfig.username, dbConfig.p
 const connect = async () => {
     await sequelize.authenticate();
     Period.associate(database.models);
-    await sequelize.sync({ force: true });
+    await sequelize.sync(); //{ force: true }
 };
 
 const model = name => database.models[name];

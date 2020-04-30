@@ -383,7 +383,7 @@ describe(`Testing Users api/v1`, function () {
             request(app)
                 .delete(`/api/v1/users/${id}`)
                 .set({ Authorization: token })
-                .expect(200)
+                .expect(204)
                 .end((err, res) => {
                     if (err)
                         return done(err);

@@ -650,7 +650,7 @@ describe(`Testing Periods api/v1`, function () {
                     if (err) return done(err);
                     done();
                 });
-        })
+        });
     });
     it(`PRD-DELETE ERROR - Not found`, function (done) {
         let id = -1;
@@ -662,6 +662,161 @@ describe(`Testing Periods api/v1`, function () {
                 if (err) return done(err);
                 done();
             });
+    });
+    //#endregion
+});
+
+
+describe(`Testing OrganizationalUnits api/v1`, function () {
+    //TODO: Delete periods created for testcases after they are used
+    //#region Get
+    it(`OU-GET SUCCESS - All OrganizationalUnits`, function (done) {
+        request(app)
+            .get('/api/v1/ou')
+            .set({ Authorization: token })
+            .expect(200)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`OU-GET SUCCESS - One OrganizationalUnit`, function (done) {
+        createOU((err, id) => {
+            if (err)
+                return done(err);
+        request(app)
+            .get(`/api/v1/ou/${id}`)
+            .set({ Authorization: token })
+            .expect(200)
+            .end((err, res) => {
+                deleteOU(id);
+                if (err) return done(err);
+                done();
+            });
+        });
+    });
+    it(`OU-GET ONE ERROR - One OrganizationalUnit; not found`, function (done) {
+        let id = -1;
+        request(app)
+            .get(`/api/v1/ou/${id}`)
+            .set({ Authorization: token })
+            .expect(404)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    //#endregion
+    //#region Post
+    it(`OU-POST ONE SUCCESS - Create one`, function (done) {
+        request(app)
+            .post(`/api/v1/ou`)
+            .set({ Authorization: token })
+            .send({ label: 'TestOU' + Math.floor(Math.random() * 1000), description: 'This is my test OU!' })
+            .expect(400)
+            .end((err, res) => {
+                deleteOU(id);
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`OU-POST ONE ERROR - Wrong amount of arguments`, function (done) {
+        request(app)
+            .post(`/api/v1/ou`)
+            .set({ Authorization: token })
+            .send({ label: 'TestOU' + Math.floor(Math.random() * 1000) })
+            .expect(400)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`OU-POST ONE ERROR - Wrong agruments`, function (done) {
+        request(app)
+            .post(`/api/v1/ou`)
+            .set({ Authorization: token })
+            .send({ lael: 'TestOU' + Math.floor(Math.random() * 1000), notes: 'This is my test OU!' })
+            .expect(400)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    //#endregion
+    //#region Put
+    it(`OU-PUT SUCCESS`, function (done) {
+        createOU((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .put(`/api/v1/ou/${id}`)
+                .set({ Authorization: token })
+                .send({ label: 'TestOU' + Math.floor(Math.random() * 1000), description: 'This is my test OU!' })
+                .expect(200)
+                .end((err, res) => {
+                    deleteOU(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    it(`OU-PUT ERROR - Not found`, function (done) {
+        let id = -1;
+        request(app)
+            .put(`/api/v1/ou/${id}`)
+            .set({ Authorization: token })
+            .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000), from: '2020-02-27', till: '2022-03-02', active: false, archived: false })
+            .expect(404)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`OU-PUT ERROR - Invalid property`, function (done) {
+        createOU((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .put(`/api/v1/ou/${id}`)
+                .set({ Authorization: token })
+                .send({ label: 'TestOU' + Math.floor(Math.random() * 1000) })
+                .expect(200)
+                .end((err, res) => {
+                    deleteOU(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+        createPeriod((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .put(`/api/v1/ou/${id}`)
+                .set({ Authorization: token })
+                .send({ name: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
+                .expect(400)
+                .end((err, res) => {
+                    deletePeriod(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    it(`OU-PUT ERROR - Too many arguments`, function (done) {
+        createPeriod((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .put(`/api/v1/ou/${id}`)
+                .set({ Authorization: token })
+                .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03'), duration: '2 years 1 month' })
+                .expect(400)
+                .end((err, res) => {
+                    deletePeriod(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
     });
     //#endregion
 });
@@ -680,6 +835,16 @@ function deleteUser(id) {
 function deletePeriod(id) {
     request(app)
         .delete(`/api/v1/periods/${id}`)
+        .set({ Authorization: token })
+        .end((err, res) => {
+            if (err)
+                assert.fail(err);
+        });
+}
+
+function deleteOU(id) {
+    request(app)
+        .delete(`/api/v1/ou/${id}`)
         .set({ Authorization: token })
         .end((err, res) => {
             if (err)
@@ -725,4 +890,26 @@ function createRandomUser(callback) {
                 assert.fail('Beforehand user generation failed!');
             callback(err, res.body.id);
         });
+}
+
+function createOU(callback) {
+    createPeriod((err, id) => {
+        if (err)
+            return done(err);  
+        request(app)
+            .post('/api/v1/ou/')
+            .set({ Authorization: token })
+            .send({ 
+                label: 'TestOU' + Math.floor(Math.random() * 1000), 
+                description: 'This is my test OU!' 
+            })
+            .end((err, res) => {
+                if (err)
+                    assert.fail(err);
+                if (!res.body.id)
+                    assert.fail('Beforehand OU generation failed!');
+                callback(err, res.body.id);
+                deletePeriod(id);
+            });
+    });
 }

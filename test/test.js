@@ -664,6 +664,353 @@ describe(`Testing Periods api/v1`, function () {
             });
     });
     //#endregion
+
+});
+
+describe(`Testing Pupils api/v1`, function () {
+    it(`PPL-GET SUCCESS - All pupils`, function (done) {
+        request(app)
+            .get('/api/v1/pupils')
+            .set({ Authorization: token })
+            .expect(200)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+        });
+    });
+    it(`PPL-GET SUCCESS - One pupil`, function (done) {
+        createRandomPupil((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .get(`/api/v1/pupils/${id}`)
+                .set({ Authorization: token })
+                .expect(200)
+                .end((err, res) => {
+                    deletePupil(id);
+                    if (err)
+                        return done(err);
+                    done();
+                });
+        });
+    });
+    it(`PPL-GET ERROR - Invalid id format`, function (done) {
+        request(app)
+            .get('/api/v1/pupils/d290f1ee-6c54-4b01-90e6-d701748fffff')
+            .set({ Authorization: token })
+            .expect(400)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`PPL-GET ERROR - Invalid id`, function (done) {
+        request(app)
+            .get('/api/v1/pupils/999')
+            .set({ Authorization: token })
+            .expect(404)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it('PPL-POST SUCCESS - create pupil', function (done) {
+        request(app)
+        .post('/api/v1/pupils/')
+        .set({ Authorization: token })
+        .send({ 
+            username: "myPupil",
+            birthdt: "2020-03-26",
+            firstname: "fnPupil",
+            lastname: "lnPupil",
+            mail: "mypupil@mail.com" 
+        })
+        .expect(201)
+        .end((err, res) => {
+            if (err) return done(err);
+            done();
+        });
+    });
+
+    it(`PPL-POST ERROR - Already exists`, function (done) {
+        request(app)
+            .post('/api/v1/pupils/')
+            .set({ Authorization: token })
+            .send({ 
+                username: "myPupil",
+                birthdt: "2020-03-26",
+                firstname: "fnPupil",
+                lastname: "lnPupil",
+                mail: "mypupil@mail.com" 
+            })
+            .expect(400)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`PPL-POST ERROR - Wrong property`, function (done) {
+        request(app)
+            .post('/api/v1/pupils/')
+            .set({ Authorization: token })
+            .send({ 
+                myUser: "myPupil",
+                birthdt: "2020-03-26",
+                firstname: "fnPupil",
+                lastname: "lnPupil",
+                mail: "mypupil@mail.com"
+            })
+            .expect(400)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`PPL-POST ERROR - Too many properties`, function (done) {
+        request(app)
+            .post('/api/v1/users/')
+            .set({ Authorization: token })
+            .send({
+                username: "myPupil",
+                birthdt: "2020-03-26",
+                firstname: "fnPupil",
+                lastname: "lnPupil",
+                mail: "mypupil@mail.com",
+                andAnother: "one"
+            })
+            .expect(400)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    /**
+     * PUT
+     */
+    it(`PPL-PUT SUCCESS`, function (done) {
+        createRandomPupil((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .put(`/api/v1/pupils/${id}`)
+                .set({ Authorization: token })
+                .send({
+                    username: "myPup",
+                    birthdt: "2020-03-26",
+                    firstname: "fnPupil",
+                    lastname: "lnPupil",
+                    mail: "yypupil@mail.com" 
+                })
+                .expect(200)
+                .end((err, res) => {
+                    deletePupil(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    it(`PPL-PUT ERROR - Invalid id`, function (done) {
+        request(app)
+            .put(`/api/v1/pupils/d290f1ee-6c54-4b01-90e6-d701748fffff`)
+            .set({ Authorization: token })
+            .send({
+                username: "myPup",
+                birthdt: "2020-03-26",
+                firstname: "fnPupil",
+                lastname: "lnPupil",
+                mail: "mypupil@mail.com" 
+            })
+            .expect(400)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`PPL-PUT ERROR - Invalid property`, function (done) {
+        createRandomPupil((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .put(`/api/v1/pupils/${id}`)
+                .set({ Authorization: token })
+                .send({
+                    name: "myPupil",
+                    birthdt: "2020-03-26",
+                    firstname: "fnPupil",
+                    lastname: "lnPupil",
+                    mail: "mypupil@mail.com" 
+                })
+                .expect(400)
+                .end((err, res) => {
+                    deletePupil(id);
+                    if (err)
+                        return done(err);
+                    done();
+                });
+        });
+    });
+    it(`PPL-PUT ERROR - Too many arguments`, function (done) {
+        createRandomPupil((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .put(`/api/v1/pupils/${id}`)
+                .set({ Authorization: token })
+                .send({
+                    username: "myPupil",
+                    birthdt: "2020-03-26",
+                    firstname: "fnPupil",
+                    lastname: "lnPupil",
+                    mail: "mypupil@mail.com",
+                    age: 20
+                })
+                .expect(400)
+                .end((err, res) => {
+                    deletePupil(id);
+                    if (err)
+                        return done(err);
+                    done();
+                });
+        });
+    });
+    /**
+     * PATCH
+     */
+    it(`PPL-PATCH SUCCESS - One value`, function (done) {
+        createRandomPupil((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .patch(`/api/v1/pupils/${id}`)
+                .set({ Authorization: token })
+                .send({ username: 'myPup' })
+                .expect(200)
+                .end((err, res) => {
+                    deletePupil(id);
+                    if (err)
+                        return done(err);
+                    done();
+                });
+        });
+    });
+    it(`PPL-PATCH SUCCESS - All values`, function (done) {
+        createRandomPupil((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .patch(`/api/v1/pupils/${id}`)
+                .set({ Authorization: token })
+                .send({
+                    username: "nyPupil",
+                    birthdt: "2020-03-26",
+                    firstname: "fnPupil",
+                    lastname: "lnPupil",
+                    mail: "xypupil@mail.com"
+                })
+                .expect(200)
+                .end((err, res) => {
+                    deletePupil(id);
+                    if (err)
+                        return done(err);
+                    done();
+                });
+        });
+    });
+    it(`PPL-PATCH ERROR - Invalid id`, function (done) {
+        request(app)
+            .patch(`/api/v1/pupils/d290f1ee-6c54-4b01-90e6-d701748fffff`)
+            .set({ Authorization: token })
+            .send({
+                username: "myPupil",
+                birthdt: "2020-03-26",
+                firstname: "fnPupil",
+                lastname: "lnPupil",
+                mail: "mypupil@mail.com"
+            })
+            .expect(400)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`PPL-PATCH ERROR - Invalid property`, function (done) {
+        createRandomPupil((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .patch(`/api/v1/pupils/${id}`)
+                .set({ Authorization: token })
+                .send({
+                    name: "myPupil"
+                })
+                .expect(400)
+                .end((err, res) => {
+                    deletePupil(id);
+                    if (err)
+                        return done(err);
+                    done();
+                });
+        });
+    });
+    it(`PPL-PATCH ERROR - Too many arguments`, function (done) {
+        createRandomPupil((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .patch(`/api/v1/pupils/${id}`)
+                .set({ Authorization: token })
+                .send({
+                    username: "myPupil",
+                    birthdt: "2020-03-26",
+                    firstname: "fnPupil",
+                    lastname: "lnPupil",
+                    mail: "mypupil@mail.com",
+                    age: 20
+                })
+                .expect(400)
+                .end((err, res) => {
+                    deletePupil(id);
+                    if (err)
+                        return done(err);
+                    done();
+                });
+        });
+    });
+    /**
+     * Delete
+     */
+    it(`PPL-DELETE SUCCESS`, function (done) {
+        createRandomPupil((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .delete(`/api/v1/pupils/${id}`)
+                .set({ Authorization: token })
+                .expect(204)
+                .end((err, res) => {
+                    if (err)
+                        return done(err);
+                    done();
+                });
+        });
+    });
+    it(`PPL-DELETE ERROR - Invalid id`, function (done) {
+        request(app)
+            .delete(`/api/v1/pupils/d290f1ee-6c54-4b01-90e6-d701748fffff`)
+            .set({ Authorization: token })
+            .send({
+                username: "myPupil",
+                birthdt: "2020-03-26",
+                firstname: "fnPupil",
+                lastname: "lnPupil",
+                mail: "mypupil@mail.com"
+            })
+            .expect(400)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
 });
 
 
@@ -676,7 +1023,15 @@ function deleteUser(id) {
                 assert.fail(err);
         });
 }
-
+function deletePupil(id){
+    request(app)
+        .delete(`/api/v1/pupils/${id}`)
+        .set({ Authorization: token })
+        .end((err, res) => {
+            if (err)
+                assert.fail(err);
+        });
+}
 function deletePeriod(id) {
     request(app)
         .delete(`/api/v1/periods/${id}`)
@@ -708,6 +1063,27 @@ function createPeriod(callback, label) {
             }
             callback(err, res.body.id);
         });
+}
+function createRandomPupil(callback){
+    let random = "pupil"+ Math.floor(Math.random()*(99-4+1)+4);
+    request(app)
+        .post('/api/v1/pupils/')
+        .set({ Authorization: token })
+        .send({
+            username: random,
+            birthdt: "2020-03-26",
+            firstname: "fn"+random,
+            lastname: "ln"+random,
+            mail: random+"@mail.com"
+        })
+        .end((err, res) => {
+            if(err){
+                assert.fail(err);
+            }
+            if (!res.body.id)
+                assert.fail('Beforehand pupil generation failed!');
+            callback(err, res.body.id);
+        })
 }
 
 function createRandomUser(callback) {

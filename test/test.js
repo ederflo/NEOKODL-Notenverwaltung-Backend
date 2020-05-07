@@ -779,7 +779,7 @@ describe(`Testing OrganizationalUnits api/v1`, function () {
             request(app)
                 .put(`/api/v1/ou/${id}`)
                 .set({ Authorization: token })
-                .send({ label: 'TestOU' + Math.floor(Math.random() * 1000) })
+                .send({ name: 'TestOU' + Math.floor(Math.random() * 1000), description: 'Gruppe 3' })
                 .expect(200)
                 .end((err, res) => {
                     deleteOU(id);
@@ -787,36 +787,128 @@ describe(`Testing OrganizationalUnits api/v1`, function () {
                     done();
                 });
         });
-        createPeriod((err, id) => {
+    });
+    it(`OU-PUT ERROR - Too many arguments`, function (done) {
+        createOU((err, id) => {
             if (err)
                 return done(err);
             request(app)
                 .put(`/api/v1/ou/${id}`)
                 .set({ Authorization: token })
-                .send({ name: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03') })
+                .send({ label: 'TestOU' + Math.floor(Math.random() * 1000), description: 'Gruppe 1', numOfPupils: '19' })
                 .expect(400)
                 .end((err, res) => {
-                    deletePeriod(id);
+                    createOU(id);
                     if (err) return done(err);
                     done();
                 });
         });
     });
-    it(`OU-PUT ERROR - Too many arguments`, function (done) {
-        createPeriod((err, id) => {
+    //#endregion
+    //#region Patch
+    it(`OU-PATCH SUCCESS - One value`, function (done) {
+        createOU((err, id) => {
             if (err)
                 return done(err);
             request(app)
-                .put(`/api/v1/ou/${id}`)
+                .patch(`/api/v1/ou/${id}`)
                 .set({ Authorization: token })
-                .send({ label: 'TestPeriod' + Math.floor(Math.random() * 1000), from: new Date('2020-27-02'), till: new Date('2022-27-03'), duration: '2 years 1 month' })
-                .expect(400)
+                .send({ label: 'Changed label' + Math.floor(Math.random() * 1000) })
+                .expect(200)
                 .end((err, res) => {
-                    deletePeriod(id);
+                    deleteOU(id)
                     if (err) return done(err);
                     done();
                 });
         });
+    });
+    it(`OU-PATCH SUCCESS - All values`, function (done) {
+        deleteOU((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .patch(`/api/v1/ou/${id}`)
+                .set({ Authorization: token })
+                .send({ label: 'NVS2 4BHIF' + Math.floor(Math.random() * 1000), description: 'NVS Gruppe 1' })
+                .expect(200)
+                .end((err, res) => {
+                    deleteOU(id)
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    it(`OU-PATCH ERROR - Invalid id`, function (done) {
+        let id = -1;
+        request(app)
+            .patch(`/api/v1/ou/${id}`)
+            .set({ Authorization: token })
+            .send({ label: 'NewTestOU' + Math.floor(Math.random() * 1000), description: 'NVS Gruppe 1' })
+            .expect(404)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`OU-PATCH ERROR - Invalid property`, function (done) {
+        createOU((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .patch(`/api/v1/ou/${id}`)
+                .set({ Authorization: token })
+                .send({ name: 'TestOU' + Math.floor(Math.random() * 1000) })
+                .expect(400)
+                .end((err, res) => {
+                    deleteOU(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    it(`OU-PATCH ERROR - Too many arguments`, function (done) {
+        createOU((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .patch(`/api/v1/ou/${id}`)
+                .set({ Authorization: token })
+                .send({ label: 'TestOU' + Math.floor(Math.random() * 1000), description: 'Gruppe 1', numOfPupils: '19' })
+                .expect(400)
+                .end((err, res) => {
+                    deleteOU(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    //#endregion
+    //#region Delete
+    it(`OU-DELETE SUCCESS - One OU`, function (done) {
+        createOU((err, id) => {
+            if (err) {
+                return done(err);
+            }
+            request(app)
+                .delete(`/api/v1/ou/${id}`)
+                .set({ Authorization: token })
+                .expect(204)
+                .end((err, res) => {
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    it(`OU-DELETE ERROR - Not found`, function (done) {
+        let id = -1;
+        request(app)
+            .delete(`/api/v1/ou/${id}`)
+            .set({ Authorization: token })
+            .expect(404)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
     });
     //#endregion
 });

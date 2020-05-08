@@ -18,6 +18,8 @@ var authUserToken1 = 'Bearer ';
 var authUserToken2 = 'Bearer ';
 var token = 'Bearer ';
 
+var periodIdForOUs;
+
 
 before(done => {
     app.on('app_started', function () {
@@ -383,7 +385,7 @@ describe(`Testing Users api/v1`, function () {
             request(app)
                 .delete(`/api/v1/users/${id}`)
                 .set({ Authorization: token })
-                .expect(200)
+                .expect(204)
                 .end((err, res) => {
                     if (err)
                         return done(err);
@@ -668,7 +670,16 @@ describe(`Testing Periods api/v1`, function () {
 
 
 describe(`Testing OrganizationalUnits api/v1`, function () {
-    //TODO: Delete periods created for testcases after they are used
+    
+    it(`OU-Create Period for OUs`, function (done) {
+        createPeriod((err, id) => {
+            if (err)
+                return done(err);
+            periodIdForOUs = id;
+            done();
+        })
+    });
+
     //#region Get
     it(`OU-GET SUCCESS - All OrganizationalUnits`, function (done) {
         request(app)
@@ -690,7 +701,7 @@ describe(`Testing OrganizationalUnits api/v1`, function () {
             .expect(200)
             .end((err, res) => {
                 deleteOU(id);
-                if (err) return done(err);
+                if (err || res.body.id != id) return done(err);
                 done();
             });
         });
@@ -713,18 +724,18 @@ describe(`Testing OrganizationalUnits api/v1`, function () {
             .post(`/api/v1/ou`)
             .set({ Authorization: token })
             .send({ label: 'TestOU' + Math.floor(Math.random() * 1000), description: 'This is my test OU!' })
-            .expect(400)
+            .expect(201)
             .end((err, res) => {
-                deleteOU(id);
+                deleteOU(res.body.id);
                 if (err) return done(err);
                 done();
             });
     });
-    it(`OU-POST ONE ERROR - Wrong amount of arguments`, function (done) {
+    it(`OU-POST ONE ERROR - Check label not null`, function (done) {
         request(app)
             .post(`/api/v1/ou`)
             .set({ Authorization: token })
-            .send({ label: 'TestOU' + Math.floor(Math.random() * 1000) })
+            .send({ description: 'TestDesc' + Math.floor(Math.random() * 1000) })
             .expect(400)
             .end((err, res) => {
                 if (err) return done(err);
@@ -780,7 +791,7 @@ describe(`Testing OrganizationalUnits api/v1`, function () {
                 .put(`/api/v1/ou/${id}`)
                 .set({ Authorization: token })
                 .send({ name: 'TestOU' + Math.floor(Math.random() * 1000), description: 'Gruppe 3' })
-                .expect(200)
+                .expect(400)
                 .end((err, res) => {
                     deleteOU(id);
                     if (err) return done(err);
@@ -798,7 +809,7 @@ describe(`Testing OrganizationalUnits api/v1`, function () {
                 .send({ label: 'TestOU' + Math.floor(Math.random() * 1000), description: 'Gruppe 1', numOfPupils: '19' })
                 .expect(400)
                 .end((err, res) => {
-                    createOU(id);
+                    deleteOU(id);
                     if (err) return done(err);
                     done();
                 });
@@ -806,7 +817,7 @@ describe(`Testing OrganizationalUnits api/v1`, function () {
     });
     //#endregion
     //#region Patch
-    it(`OU-PATCH SUCCESS - One value`, function (done) {
+    it(`OU-Patch SUCCESS - One value`, function (done) {
         createOU((err, id) => {
             if (err)
                 return done(err);
@@ -816,14 +827,14 @@ describe(`Testing OrganizationalUnits api/v1`, function () {
                 .send({ label: 'Changed label' + Math.floor(Math.random() * 1000) })
                 .expect(200)
                 .end((err, res) => {
-                    deleteOU(id)
+                    deleteOU(id);
                     if (err) return done(err);
                     done();
                 });
         });
     });
     it(`OU-PATCH SUCCESS - All values`, function (done) {
-        deleteOU((err, id) => {
+        createOU((err, id) => {
             if (err)
                 return done(err);
             request(app)
@@ -911,6 +922,8 @@ describe(`Testing OrganizationalUnits api/v1`, function () {
             });
     });
     //#endregion
+
+    deletePeriod(periodIdForOUs);
 });
 
 

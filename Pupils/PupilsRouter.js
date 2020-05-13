@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const db = require('../Services/database');
 const Pupil = db.model('Pupil');
-const authController = require('../Authentication/AuthenticationController');
 const AppError = require('../Services/error-management').AppError;
 const handleError = require('../Services/error-management').handleError;
 
@@ -21,9 +20,12 @@ router.get('/:id', selectById, (req, res) => {
     res.status(200).json(req.selectedPupil);
 });
 
-router.post('/', authController.verifyToken, (req, res) => {
+router.post('/', (req, res) => {
     delete req.body.id;
     req.body.UserId = req.authUser.id;
+
+    //params abfragen
+
     Pupil.create(req.body)
         .then((pupil) => {
             res.status(201).json(pupil);

@@ -1,11 +1,19 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../Services/database');
+const Pupil = db.model('Pupil');
 const AppError = require('../Services/error-management').AppError;
 const handleError = require('../Services/error-management').handleError;
 
 router.get('/', (req, res) => {
-    res.status(200).json([{"id":"1","email":"exampleMail@mail.com","birthdt":"2020-04-27","firstname":"Karli","lastname":"Kolumbus","notes":"Wofür is dieses Feld eigentlich do?"},{"id":"2","email":"exampleNail@nail.com","birthdt":"2020-04-27","firstname":"Karlo","lastname":"Astro","notes":"Die Frage bleibt bestehen."},{"id":"3","email":"exampleXail@xail.com","birthdt":"2020-04-27","firstname":"Karle","lastname":"Kolumbe","notes":"Die Frage."}]);
+    Pupil.findAll({ where: { UserId: req.authUser.id } })
+        .then((periods) => {
+            res.status(200).json(periods);
+        })
+        .catch((err) => {
+            err.statusCode = 500;
+            handleError(err, req, res);
+    });
 });
 
 router.get('/:id', selectById, (req, res) => {
@@ -14,33 +22,88 @@ router.get('/:id', selectById, (req, res) => {
 
 router.post('/', (req, res) => {
     delete req.body.id;
-    var pupil = req.body;
-    res.status(201).json(pupil);
+    req.body.UserId = req.authUser.id;
+
+    //params abfragen
+
+    Pupil.create(req.body)
+        .then((pupil) => {
+            res.status(201).json(pupil);
+        })
+        .catch((err) => {
+            err.statusCode = 400;
+            handleError(err, req, res);
+    });
 });
+
+router.put('/:id', selectById, validateCompletePupil, doUpdate);
+
+router.patch('/:id', selectById, validatePartialPupil, doUpdate);
 
 router.delete('/:id', selectById, (req, res) => {
-    res.status(204).send();
+    req.selectedPupil.destroy()
+        .then(() => {
+            res.status(204).send();
+        })
+        .catch((err) => {
+            err.statusCode = 500;
+            handleError(err, req, res);
+        });
 });
 
+function validateCompletePupil(req, res, next) {
+    validateUserObjectForUpdate(req, res, next, true);
+}
+function validatePartialPupil(req, res, next) {
+    validateUserObjectForUpdate(req, res, next, false);
+}
+function validateUserObjectForUpdate(req, res, next, fullUpdate) {
+    let comparePupil = req.selectedPupil.toJSON();
+
+    delete comparePupil.id;
+    delete comparePupil.createdAt;
+    delete comparePupil.updatedAt;
+    delete comparePupil.UserId;
+
+    if (fullUpdate) {
+        if (Object.keys(comparePupil).length != Object.keys(req.body).length) {
+            throw new AppError(400, 'number o properties in object not valid');
+        }
+    }
+
+    if (Object.keys(req.body).some(k => { return comparePupil[k] == undefined; })) {
+        throw new AppError(400, 'number o properties in object not valid');
+    }
+    next();
+}
+function doUpdate(req, res) {
+    req.selectedPupil.update(req.body)
+        .then((pupil) => {
+            res.status(200).json(pupil);
+        })
+        .catch((err) => {
+            err.statusCode = 500;
+            handleError(err, req, res);
+        });
+}
 function selectById(req, res, next) {
     let reqId = parseInt(req.params.id);
     if (isNaN(reqId)) {
         throw new AppError(400, 'Given id was not a number.');
     }
-    if (reqId != 1) {
-        err.statusCode = 404;
-        handleError(err, req, res);
-        return;
-    }
-    req.selectedPupil = { 
-        id: 1, 
-        email: 'exampleMail@mail.com', 
-        birthdt: '27.04.2020',
-        firstname: "Karli",
-        lastname: "Kolumbus",
-        notes: "Wofür is dieses Feld eigentlich do?"
-    };
-    next();
+    Pupil.findOne({ where: { id: reqId, UserId: req.authUser.id } })
+        .then(pupil => {
+            if (pupil == null) {
+                throw new AppError(404, 'Not found');
+            }
+            req.selectedPupil = pupil;
+            next();
+        })
+        .catch(err => {
+            err.statusCode = 404;
+            handleError(err, req, res);
+            return;
+    });
 }
 
 module.exports = router;

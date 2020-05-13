@@ -10,20 +10,20 @@ const connect = async () => {
     await sequelize.authenticate();
     Period.associate(database.models);
     Pupil.associate(database.models);
-    await sequelize.sync({ force: true }); //
+    OrganizationalUnit.associate(database.models);
+    await sequelize.sync({ force: true });
 };
 
 const model = name => database.models[name];
 
-const User = sequelize.import('./../Users/UserModel');
+const User = sequelize.import('./../users/UserModel');
 const Period = sequelize.import('./../Periods/PeriodsModel');
-const OU = sequelize.import('./../organizationalUnits/OrganizationalUnitsModel');
 const Pupil = sequelize.import('./../Pupils/PupilsModel');
-
+const OrganizationalUnit = sequelize.import('./../organizationalUnits/OrganizationalUnitsModel');
 
 const database = {
   sequelize: sequelize,
-  models: { User, Period, OU, Pupil },
+  models: { User, Period, OrganizationalUnit, Pupil },
   connect,
   model
 };

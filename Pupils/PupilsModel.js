@@ -5,7 +5,6 @@ module.exports = (sequelize, DataTypes) => {
         username : {
             type: DataTypes.STRING,
             allowNull: false,
-            unique: true,
             validate: {
                 len: [4, 12]
             }
@@ -27,11 +26,21 @@ module.exports = (sequelize, DataTypes) => {
         mail : {
             type: DataTypes.STRING,
             allowNull: false,
-            unique: true,
             validate: { 
                 isEmail: true
             }
         }
+    },{
+        indexes: [
+            {
+                unique: true,
+                fields: ['username', 'UserId']
+            },
+            {
+                unique: true,
+                fields: ['mail', 'UserId']
+            }
+        ]
     });
     Pupils.associate = function (models) {
         models.Pupil.belongsTo(models.User, {

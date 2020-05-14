@@ -21,6 +21,7 @@ const OU = db.model('OrganizationalUnit');
 const Period = db.model('Period');
 const AppError = require('../Services/error-management').AppError;
 const handleError = require('../Services/error-management').handleError;
+const outputFormatter = require('../Services/outPutFormatter');
 
 router.get('/', async (req, res) => {
     let activePeriodId = await getActivePeriodId(req.authUser.id)
@@ -29,7 +30,7 @@ router.get('/', async (req, res) => {
     }
     OU.findAll({ where: { PeriodId: activePeriodId } })
         .then((ous) => {
-            res.status(200).json(ous);
+            res.status(200).json(outputFormatter(ous));
         })
         .catch((err) => {
             err.statusCode = 500;
@@ -38,7 +39,7 @@ router.get('/', async (req, res) => {
 });
 
 router.get('/:id', selectById, (req, res) => {
-    res.status(200).json(req.selectedOrganizationalUnit);
+    res.status(200).json(outputFormatter(req.selectedOrganizationalUnit));
 });
 
 router.post('/', async (req, res) => {
@@ -51,7 +52,7 @@ router.post('/', async (req, res) => {
     organizationalUnit.PeriodId = activePeriodId;
     OU.create(organizationalUnit)
         .then((createdOU) => {
-            res.status(201).json(createdOU);
+            res.status(201).json(outputFormatter(createdOU));
         })
         .catch((err) => {
             err.statusCode = 400;
@@ -129,7 +130,7 @@ function validateOUObjectForUpdate(req, res, next, fullUpdate) {
 function doUpdate(req, res) {
     req.selectedOrganizationalUnit.update(req.body)
         .then((ou) => {
-            res.status(200).json(ou);
+            res.status(200).json(outputFormatter(ou));
         })
         .catch((err) => {
             err.statusCode = 500;

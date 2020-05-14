@@ -4,20 +4,21 @@ const db = require('../Services/database');
 const Pupil = db.model('Pupil');
 const AppError = require('../Services/error-management').AppError;
 const handleError = require('../Services/error-management').handleError;
+const outPutFormatter = require('../Services/outPutFormatter');
 
 router.get('/', (req, res) => {
     Pupil.findAll({ where: { UserId: req.authUser.id } })
-        .then((periods) => {
-            res.status(200).json(periods);
+        .then((pupils) => {
+            res.status(200).json(outPutFormatter(pupils));
         })
         .catch((err) => {
             err.statusCode = 500;
             handleError(err, req, res);
-    });
+        });
 });
 
 router.get('/:id', selectById, (req, res) => {
-    res.status(200).json(req.selectedPupil);
+    res.status(200).json(outPutFormatter(req.selectedPupil));
 });
 
 router.post('/', (req, res) => {
@@ -28,12 +29,12 @@ router.post('/', (req, res) => {
 
     Pupil.create(req.body)
         .then((pupil) => {
-            res.status(201).json(pupil);
+            res.status(201).json(outPutFormatter(pupil));
         })
         .catch((err) => {
             err.statusCode = 400;
             handleError(err, req, res);
-    });
+        });
 });
 
 router.put('/:id', selectById, validateCompletePupil, doUpdate);
@@ -79,7 +80,7 @@ function validateUserObjectForUpdate(req, res, next, fullUpdate) {
 function doUpdate(req, res) {
     req.selectedPupil.update(req.body)
         .then((pupil) => {
-            res.status(200).json(pupil);
+            res.status(200).json(outPutFormatter(pupil));
         })
         .catch((err) => {
             err.statusCode = 500;
@@ -103,7 +104,7 @@ function selectById(req, res, next) {
             err.statusCode = 404;
             handleError(err, req, res);
             return;
-    });
+        });
 }
 
 module.exports = router;

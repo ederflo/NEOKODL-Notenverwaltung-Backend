@@ -20,11 +20,12 @@ const db = require('../Services/database');
 const Period = db.model('Period');
 const AppError = require('../Services/error-management').AppError;
 const handleError = require('../Services/error-management').handleError;
+const outputFormatter = require('../Services/outPutFormatter');
 
 router.get('/', (req, res) => {
     Period.findAll({ where: { UserId: req.authUser.id } })
         .then((periods) => {
-            res.status(200).json(periods);
+            res.status(200).json(outputFormatter(periods));
         })
         .catch((err) => {
             err.statusCode = 500;
@@ -33,7 +34,7 @@ router.get('/', (req, res) => {
 });
 
 router.get('/:id', selectById, (req, res) => {
-    res.status(200).json(req.selectedPeriod);
+    res.status(200).json(outputFormatter(req.selectedPeriod));
 });
 
 router.post('/', (req, res) => {
@@ -58,7 +59,7 @@ router.post('/', (req, res) => {
             }
             Period.create(period)
                 .then((createdPeriod) => {
-                    res.status(201).json(createdPeriod);
+                    res.status(200).json(outputFormatter(createdPeriod));
                 })
                 .catch((err) => {
                     err.statusCode = 400;
@@ -102,7 +103,7 @@ router.patch('/activate/:id', selectById, (req, res) => {
 
                 req.selectedPeriod.update({ active: true })
                     .then((activatedPeriod) => {
-                        res.status(200).json(activatedPeriod);
+                        res.status(200).json(outputFormatter(activatedPeriod));
                     })
                     .catch((err) => {
                         err.statusCode = 500;
@@ -182,7 +183,7 @@ function validatePeriodObjectForUpdate(req, res, next, fullUpdate) {
 function doUpdate(req, res) {
     req.selectedPeriod.update(req.body)
         .then((period) => {
-            res.status(200).json(period);
+            res.status(200).json(outputFormatter(period));
         })
         .catch((err) => {
             err.statusCode = 500;

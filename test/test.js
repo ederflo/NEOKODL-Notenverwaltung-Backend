@@ -681,9 +681,19 @@ describe(`Testing OrganizationalUnits api/v1`, function () {
     });
 
     //#region Get
-    it(`OU-GET SUCCESS - All OrganizationalUnits`, function (done) {
+    it(`OU-GET SUCCESS - All OrganizationalUnits of active Period`, function (done) {
         request(app)
             .get('/api/v1/ou')
+            .set({ Authorization: token })
+            .expect(200)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`OU-GET SUCCESS - All OrganizationalUnits of given Period`, function (done) {
+        request(app)
+            .get(`/api/v1/ou?periodId=${periodIdForOUs}`)
             .set({ Authorization: token })
             .expect(200)
             .end((err, res) => {

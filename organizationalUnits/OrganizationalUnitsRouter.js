@@ -23,11 +23,20 @@ const AppError = require('../Services/error-management').AppError;
 const handleError = require('../Services/error-management').handleError;
 
 router.get('/', async (req, res) => {
-    let activePeriodId = await getActivePeriodId(req.authUser.id)
-    if (!activePeriodId) {
-        throw new AppError(404, 'No active period');
+    let periodId = req.query.periodId;
+    if (!periodId) {
+        let activePeriodId = await getActivePeriodId(req.authUser.id)
+        if (!activePeriodId) {
+            //throw new AppError(404, 'No active period');
+            res.status(404).send('No active period found!');
+        }
+        periodId = activePeriodId;
     }
-    OU.findAll({ where: { PeriodId: activePeriodId } })
+    if (!await periodBelongsToUser(periodId, req.authUser.id)) {
+        //throw new AppError(404, 'Not found');
+        res.status(404).send('Given period not found!');
+    }
+    OU.findAll({ where: { PeriodId: periodId } })
         .then((ous) => {
             res.status(200).json(ous);
         })
@@ -148,9 +157,15 @@ async function getActivePeriodId(userId) {
     //     return;
     // });
 
-    let period = await Period.findOne({ where: { UserId: userId, active: true } });
+    let period = null;
+    try {
+        period = await Period.findOne({ where: { UserId: userId, active: true } });
+    } catch(err) {
+        err.statusCode = 500;
+        handleError(err, req, res);
+    }
     if (period == null)
-        return;
+        return null;
     return period.id;
 }
 
@@ -164,8 +179,25 @@ async function OUBelongsToUser(ou, userId) {
     //     .catch(err => {
     //         return false;
     //     });
+    let period = null;
+    try {
+        period = await Period.findOne({ where: { id: ou.PeriodId, UserId: userId } });
+    } catch (err) {
+        err.statusCode = 500;
+        handleError(err, req, res);
+    }
+    return period != null;
+}
 
-    return (await Period.findOne({ where: { id: ou.PeriodId, UserId: userId } })) != null;
+async function periodBelongsToUser(periodId, userId) {
+    let period;
+    try {
+        period = await Period.findOne({ where: { id: periodId, UserId: userId } });
+    } catch(err) {
+        err.statusCode = 500;
+        handleError(err, req, res);
+    }
+    return period != null;
 }
 
 module.exports = router;

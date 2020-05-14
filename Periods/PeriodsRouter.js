@@ -51,7 +51,7 @@ router.post('/', (req, res) => {
                     period.active = false;
                 }
             }
-            if (period.archived == true) {
+            if (period.archived == true || period.archived == 'true') {
                 throw new AppError(400, 'Cannot create archived period.');
             } else if (period.archived == null) {
                 period.archived = false;
@@ -93,7 +93,7 @@ router.patch('/activate/:id', selectById, (req, res) => {
     if (req.selectedPeriod.archived === true) {
         throw new AppError(400, 'Cannot activate an archived period.');
     } else {
-        Period.findOne({ where: { active: true } })
+        Period.findOne({ where: { active: true, UserId: req.authUser.id } })
             .then(previouslyActivePeriod => {
                 if (req.selectedPeriod.id == previouslyActivePeriod.id) {
                     throw new AppError(400, 'Period is already active.');

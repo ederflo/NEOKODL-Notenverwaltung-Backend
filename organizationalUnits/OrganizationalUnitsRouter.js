@@ -115,12 +115,10 @@ function validatePartialOU(req, res, next) {
 function validateOUObjectForUpdate(req, res, next, fullUpdate) {
     let compareOU = req.selectedOrganizationalUnit.toJSON();
 
-    let user = req.body.user;
     req.body.PeriodId = req.selectedOrganizationalUnit.PeriodId;
     delete compareOU.id;
     delete compareOU.createdAt;
     delete compareOU.updatedAt;
-    delete req.body.user;
 
     if (fullUpdate) {
         if (Object.keys(compareOU).length != Object.keys(req.body).length) {
@@ -131,8 +129,7 @@ function validateOUObjectForUpdate(req, res, next, fullUpdate) {
     if (Object.keys(req.body).some(k => { return compareOU[k] == undefined; })) {
         throw new AppError(400, 'properties of object do not match');
     }
-
-    req.body.user = user;
+    
     next();
 }
 function doUpdate(req, res) {

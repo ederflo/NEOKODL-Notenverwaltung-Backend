@@ -9,6 +9,7 @@ const sequelize = new Sequelize(dbConfig.database, dbConfig.username, dbConfig.p
 const connect = async () => {
     await sequelize.authenticate();
     Period.associate(database.models);
+    A_OUPupil.associate(database.models);
     Pupil.associate(database.models);
     OrganizationalUnit.associate(database.models);
     await sequelize.sync({ force: true });
@@ -20,10 +21,11 @@ const User = sequelize.import('./../users/UserModel');
 const Period = sequelize.import('./../Periods/PeriodsModel');
 const Pupil = sequelize.import('./../Pupils/PupilsModel');
 const OrganizationalUnit = sequelize.import('./../organizationalUnits/OrganizationalUnitsModel');
+const A_OUPupil = sequelize.import('./../Associations/PupilOUAssociation');
 
 const database = {
   sequelize: sequelize,
-  models: { User, Period, OrganizationalUnit, Pupil },
+  models: { User, Period, OrganizationalUnit, Pupil, A_OUPupil },
   connect,
   model
 };

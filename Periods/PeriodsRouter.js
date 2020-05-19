@@ -59,7 +59,7 @@ router.post('/', (req, res) => {
             }
             Period.create(period)
                 .then((createdPeriod) => {
-                    res.status(200).json(outputFormatter(createdPeriod));
+                    res.status(201).json(outputFormatter(createdPeriod));
                 })
                 .catch((err) => {
                     err.statusCode = 400;

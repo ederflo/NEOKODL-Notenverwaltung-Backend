@@ -11,6 +11,7 @@ const connect = async () => {
     Period.associate(database.models);
     Pupil.associate(database.models);
     OrganizationalUnit.associate(database.models);
+    TimeSlot.associate(database.models);
     await sequelize.sync({ force: true });
 };
 
@@ -20,10 +21,11 @@ const User = sequelize.import('./../users/UserModel');
 const Period = sequelize.import('./../Periods/PeriodsModel');
 const Pupil = sequelize.import('./../Pupils/PupilsModel');
 const OrganizationalUnit = sequelize.import('./../organizationalUnits/OrganizationalUnitsModel');
+const TimeSlot = sequelize.import('../timeSlots/TimeSlotModel');
 
 const database = {
   sequelize: sequelize,
-  models: { User, Period, OrganizationalUnit, Pupil },
+  models: { User, Period, OrganizationalUnit, Pupil, TimeSlot },
   connect,
   model
 };

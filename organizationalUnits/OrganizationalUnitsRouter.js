@@ -24,11 +24,20 @@ const handleError = require('../Services/error-management').handleError;
 const outputFormatter = require('../Services/outPutFormatter');
 
 router.get('/', async (req, res) => {
-    let activePeriodId = await getActivePeriodId(req.authUser.id)
-    if (!activePeriodId) {
-        throw new AppError(404, 'No active period');
+    let periodId = req.query.periodId;
+    if (!periodId) {
+        let activePeriodId = await getActivePeriodId(req.authUser.id)
+        if (!activePeriodId) {
+            //throw new AppError(404, 'No active period');
+            res.status(404).send('No active period found!');
+        }
+        periodId = activePeriodId;
     }
-    OU.findAll({ where: { PeriodId: activePeriodId } })
+    if (!await periodBelongsToUser(periodId, req.authUser.id)) {
+        //throw new AppError(404, 'Not found');
+        res.status(404).send('Given period not found!');
+    }
+    OU.findAll({ where: { PeriodId: periodId } })
         .then((ous) => {
             res.status(200).json(outputFormatter(ous));
         })
@@ -107,12 +116,10 @@ function validatePartialOU(req, res, next) {
 function validateOUObjectForUpdate(req, res, next, fullUpdate) {
     let compareOU = req.selectedOrganizationalUnit.toJSON();
 
-    let user = req.body.user;
     req.body.PeriodId = req.selectedOrganizationalUnit.PeriodId;
     delete compareOU.id;
     delete compareOU.createdAt;
     delete compareOU.updatedAt;
-    delete req.body.user;
 
     if (fullUpdate) {
         if (Object.keys(compareOU).length != Object.keys(req.body).length) {
@@ -123,8 +130,7 @@ function validateOUObjectForUpdate(req, res, next, fullUpdate) {
     if (Object.keys(req.body).some(k => { return compareOU[k] == undefined; })) {
         throw new AppError(400, 'properties of object do not match');
     }
-
-    req.body.user = user;
+    
     next();
 }
 function doUpdate(req, res) {
@@ -149,9 +155,15 @@ async function getActivePeriodId(userId) {
     //     return;
     // });
 
-    let period = await Period.findOne({ where: { UserId: userId, active: true } });
+    let period = null;
+    try {
+        period = await Period.findOne({ where: { UserId: userId, active: true } });
+    } catch(err) {
+        err.statusCode = 500;
+        handleError(err, req, res);
+    }
     if (period == null)
-        return;
+        return null;
     return period.id;
 }
 
@@ -165,8 +177,25 @@ async function OUBelongsToUser(ou, userId) {
     //     .catch(err => {
     //         return false;
     //     });
+    let period = null;
+    try {
+        period = await Period.findOne({ where: { id: ou.PeriodId, UserId: userId } });
+    } catch (err) {
+        err.statusCode = 500;
+        handleError(err, req, res);
+    }
+    return period != null;
+}
 
-    return (await Period.findOne({ where: { id: ou.PeriodId, UserId: userId } })) != null;
+async function periodBelongsToUser(periodId, userId) {
+    let period;
+    try {
+        period = await Period.findOne({ where: { id: periodId, UserId: userId } });
+    } catch(err) {
+        err.statusCode = 500;
+        handleError(err, req, res);
+    }
+    return period != null;
 }
 
 module.exports = router;

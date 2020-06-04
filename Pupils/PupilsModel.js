@@ -48,6 +48,10 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false
           }
         });
+        models.Pupil.belongsToMany(models.OrganizationalUnit, {
+            through: models.A_OUPupil,
+            foreignKey: 'PupilId'
+        });
     };
     return Pupils;
 }

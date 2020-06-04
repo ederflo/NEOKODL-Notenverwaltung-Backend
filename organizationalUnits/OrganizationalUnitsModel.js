@@ -22,12 +22,16 @@ module.exports = (sequelize, DataTypes) => {
   });
 
   OrganizationalUnit.associate = function (models) {
-    models.OrganizationalUnit.belongsTo(models.Period, {
-      foreignKey: {
-        allowNull: false
-      }
-    });
-  };
+      models.OrganizationalUnit.belongsTo(models.Period, {
+        foreignKey: {
+          allowNull: false
+        }
+      });
+      models.OrganizationalUnit.belongsToMany(models.Pupil, {
+        through: models.A_OUPupil,
+        foreignKey: 'OrganizationalUnitId'
+      })
+    };
 
   return OrganizationalUnit;
 };

@@ -142,7 +142,7 @@ router.patch('/AddToOU', (req, res) => {
             res.status(400).send('Pupil is already in this OrganizationalUnit.');
             return;
         }
-        await pupil.addOrganizationalUnit(ouId);
+        await pupil.addOrganizationalUnit(ouId, {through: {locked: false}});
         res.status(204).send('Added Pupil to OU.');
     })
     .catch(err => {
@@ -166,7 +166,7 @@ router.patch('/RemoveFromOU', (req, res) => {
             res.status(400).send('Pupil is not in this OrganizationalUnit.');
             return;
         }
-        await pupil.removeOrganizationalUnit(ouId);
+        await pupil.removeOrganizationalUnit(ouId, {through: {locked: false}});
         res.status(204).send('Removed Pupil from OU.');
     })
     .catch(err => {

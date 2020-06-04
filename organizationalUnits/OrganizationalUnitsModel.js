@@ -1,31 +1,37 @@
 'use strict';
 
 module.exports = (sequelize, DataTypes) => {
-    var OrganizationalUnit = sequelize.define('OrganizationalUnit', {
-        label: {
-            type: DataTypes.STRING,
-            allowNull: false,
-            unique: true,
-            validate: { len: [1, 32] }
-        },
-        description: {
-            type: DataTypes.STRING,
-            allowNull: true,
-            validate: { len: [0, 256] }
+  var OrganizationalUnit = sequelize.define('OrganizationalUnit', {
+    label: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: { len: [1, 32] }
+    },
+    description: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      validate: { len: [0, 256] }
+    }
+  }, {
+    indexes: [
+      {
+        unique: true,
+        fields: ['label', 'PeriodId']
+      }
+    ]
+  });
+
+  OrganizationalUnit.associate = function (models) {
+      models.OrganizationalUnit.belongsTo(models.Period, {
+        foreignKey: {
+          allowNull: false
         }
-    });
+      });
+      models.OrganizationalUnit.belongsToMany(models.Pupil, {
+        through: models.A_OUPupil,
+        foreignKey: 'OrganizationalUnitId'
+      })
+    };
 
-    OrganizationalUnit.associate = function (models) {
-        models.OrganizationalUnit.belongsTo(models.Period, {
-          foreignKey: {
-            allowNull: false
-          }
-        });
-        models.OrganizationalUnit.belongsToMany(models.Pupil, {
-          through: models.A_OUPupil,
-          foreignKey: 'OrganizationalUnitId'
-        })
-      };
-
-    return OrganizationalUnit;
+  return OrganizationalUnit;
 };

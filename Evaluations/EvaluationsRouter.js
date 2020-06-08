@@ -9,6 +9,8 @@ const AppError = require('../Services/error-management').AppError;
 const handleError = require('../Services/error-management').handleError;
 const outputFormatter = require('../Services/outPutFormatter');
 
+//get period based
+
 router.get('/', (req, res) => {
     var ouId, pupilId;
     if (req.query['ou'] && req.query['pupil']) {
@@ -68,7 +70,7 @@ router.post('/', async (req, res) => {
             handleError(err, req, res);
         }
     } else {
-        res.send(400).send();
+        res.status(400).send();
     }
 });
 

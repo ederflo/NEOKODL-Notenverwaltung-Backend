@@ -27,6 +27,8 @@ const AppError = require('../Services/error-management').AppError;
 const handleError = require('../Services/error-management').handleError;
 const outPutFormatter = require('../Services/outPutFormatter');
 
+//get period based
+
 router.get('/', (req, res) => {
     var ouId;
     if (req.query['ou']) {
@@ -34,16 +36,16 @@ router.get('/', (req, res) => {
     }
     Pupil.findAll({ where: { UserId: req.authUser.id } })
         .then(async (pupils) => {
-            if(ouId){
+            if (ouId) {
                 let pups = [];
-                for await (let pupil of pupils){
-                    
+                for await (let pupil of pupils) {
+
                     let inOu = await pupil.hasOrganizationalUnits(ouId);
-                    if(inOu){
+                    if (inOu) {
                         let relevantOUs = await pupil.getOrganizationalUnits();
                         let relevantOU = relevantOUs.find(ou => ou.id === ouId);
                         let locked = relevantOU.A_PupilOU.locked;
-                        pups.push({...pupil.dataValues, locked: locked});
+                        pups.push({ ...pupil.dataValues, locked: locked });
                     }
                 }
                 //outputformatter erweitern
@@ -74,7 +76,7 @@ router.post('/', (req, res) => {
             if (ouId) {
                 let isOk = await checkOUConstraints(ouId, req);
                 if (isOk) {
-                    await pupil.addOrganizationalUnit(ouId, {through: {locked: false}});
+                    await pupil.addOrganizationalUnit(ouId, { through: { locked: false } });
                     res.status(201).json(outPutFormatter(pupil));
                 } else {
                     pupil.destroy();
@@ -97,88 +99,92 @@ router.put('/:id', selectById, validateCompletePupil, doUpdate);
 
 router.patch('/lock', (req, res) => {
     //toDo: check if OU is in Period and if OU belongs to User
-    if(!req.query['ou'] || !req.query['pupil']){
+    if (!req.query['ou'] || !req.query['pupil']) {
         throw new AppError(400, 'Bad query params', '', '');
     }
     let ouId = +req.query['ou'];
     let pupilid = +req.query['pupil'];
 
     Pupil.findOne({ where: { id: pupilid, UserId: req.authUser.id } })
-    .then(async pupil => {
-        let isPupilInOU = await pupil.hasOrganizationalUnits(ouId);
-        if(!isPupilInOU){
-            res.status(400).send('Pupil is not in this OrganizationalUnit');
-            return;
-        }
-        let relevantOUs = await pupil.getOrganizationalUnits();
-        let relevantOU = relevantOUs.find(ou => ou.id === ouId);
-        if(!relevantOU){
-            res.status(404).send('Not found');
-            return;
-        }
-        let locked = relevantOU.A_PupilOU.locked;
-        await pupil.setOrganizationalUnits(relevantOU, {through: {locked: !locked}});
+        .then(async pupil => {
+            let isPupilInOU = await pupil.hasOrganizationalUnits(ouId);
+            if (!isPupilInOU) {
+                res.status(400).send('Pupil is not in this OrganizationalUnit');
+                return;
+            }
+            let relevantOUs = await pupil.getOrganizationalUnits();
+            let relevantOU = relevantOUs.find(ou => ou.id === ouId);
+            if (!relevantOU) {
+                res.status(404).send('Not found');
+                return;
+            }
+            let locked = relevantOU.A_PupilOU.locked;
+            await pupil.setOrganizationalUnits(relevantOU, { through: { locked: !locked } });
 
-        res.status(204).send();
-    })
-    .catch(err => {
-        err.statusCode = 404;
-        handleError(err, req, res);
-    })
+            res.status(204).send();
+        })
+        .catch(err => {
+            err.statusCode = 404;
+            handleError(err, req, res);
+        })
 });
 
 router.patch('/AddToOU', (req, res) => {
     //toDo: check if OU is in Period and if OU belongs to User
-    if(!req.query['ou'] || !req.query['pupil']){
+    if (!req.query['ou'] || !req.query['pupil']) {
         throw new AppError(400, 'Bad query params', '', '');
     }
     let ouId = +req.query['ou'];
     let pupilid = +req.query['pupil'];
 
     Pupil.findOne({ where: { id: pupilid, UserId: req.authUser.id } })
-    .then(async pupil => {
-        let isPupilInOU = await pupil.hasOrganizationalUnits(ouId);
-        if(isPupilInOU){
-            res.status(400).send('Pupil is already in this OrganizationalUnit.');
-            return;
-        }
-        await pupil.addOrganizationalUnit(ouId, {through: {locked: false}});
-        res.status(204).send('Added Pupil to OU.');
-    })
-    .catch(err => {
-        err.statusCode = 404;
-        handleError(err, req, res);
-    });
+        .then(async pupil => {
+            try {
+                let isPupilInOU = await pupil.hasOrganizationalUnits(ouId);
+                if (isPupilInOU) {
+                    res.status(400).send('Pupil is already in this OrganizationalUnit.');
+                    return;
+                }
+                await pupil.addOrganizationalUnit(ouId, { through: { locked: false } });
+                res.status(204).send('Added Pupil to OU.');
+            } catch (err) {
+                console.log(err);
+            }
+        })
+        .catch(err => {
+            err.statusCode = 404;
+            handleError(err, req, res);
+        });
 });
 
 router.patch('/RemoveFromOU', (req, res) => {
     //toDo: check if OU is in Period and if OU belongs to User
-    if(!req.query['ou'] || !req.query['pupil']){
+    if (!req.query['ou'] || !req.query['pupil']) {
         throw new AppError(400, 'Bad query params', '', '');
     }
     let ouId = +req.query['ou'];
     let pupilid = +req.query['pupil'];
 
     Pupil.findOne({ where: { id: pupilid, UserId: req.authUser.id } })
-    .then(async pupil => {
-        let isPupilInOU = await pupil.hasOrganizationalUnits(ouId);
-        if(!isPupilInOU){
-            res.status(400).send('Pupil is not in this OrganizationalUnit.');
-            return;
-        }
-        await pupil.removeOrganizationalUnit(ouId, {through: {locked: false}});
-        res.status(204).send('Removed Pupil from OU.');
-    })
-    .catch(err => {
-        err.statusCode = 404;
-        handleError(err, req, res);
-    });
+        .then(async pupil => {
+            let isPupilInOU = await pupil.hasOrganizationalUnits(ouId);
+            if (!isPupilInOU) {
+                res.status(400).send('Pupil is not in this OrganizationalUnit.');
+                return;
+            }
+            await pupil.removeOrganizationalUnit(ouId, { through: { locked: false } });
+            res.status(204).send('Removed Pupil from OU.');
+        })
+        .catch(err => {
+            err.statusCode = 404;
+            handleError(err, req, res);
+        });
 });
 router.patch('/:id', selectById, validatePartialPupil, doUpdate);
 
 router.delete('/:id', selectById, async (req, res) => {
     let nrOfOus = await req.selectedPupil.countOrganizationalUnits();
-    if(nrOfOus != 0){
+    if (nrOfOus != 0) {
         res.status(400).send('Pupil is still associated with OUs.');
         return;
     }
@@ -249,7 +255,7 @@ function selectById(req, res, next) {
 async function checkOUConstraints(ouId, req) {
     //toDo: check if OU is in Period and if OU belongs to User
     let seqObject = await OU.findAndCountAll({ where: { id: ouId } });
-    if(seqObject.count !== 1){
+    if (seqObject.count !== 1) {
         return false;
     }
     return true;

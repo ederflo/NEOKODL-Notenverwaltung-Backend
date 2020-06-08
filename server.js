@@ -39,7 +39,7 @@ function defaultSetup() {
     const authController = require('./Authentication/AuthenticationController');
     const organizationalUnitsRouter = require('./organizationalUnits/OrganizationalUnitsRouter');
     const pupilsRouter = require('./Pupils/PupilsRouter');
-    const recordsRouter = require('./Records/RecordsRouter');
+    const evaluationsRouter = require('./Evaluations/EvaluationsRouter');
     const errorManager = require('./Services/error-management').errorHandler;
 
     const corsOptions = configManager.getCorsData();
@@ -53,7 +53,7 @@ function defaultSetup() {
     app.use('/api/v1/periods', periodsRouter);
     app.use('/api/v1/ou', organizationalUnitsRouter);
     app.use('/api/v1/pupils', pupilsRouter);
-    app.use('/api/v1/records', recordsRouter);
+    app.use('/api/v1/evaluations', evaluationsRouter);
     app.get('/secret', (req, res) => { res.status(200).send('Secret site') });
 
     const backendConfig = configManager.getBackendData();

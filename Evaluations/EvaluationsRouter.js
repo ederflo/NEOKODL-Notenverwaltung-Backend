@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../Services/database');
-const Record = db.model('Record');
+const Evaluation = db.model('Evaluation');
 const Pupil = db.model('Pupil');
+const Period = db.model('Period');
 const OU = db.model('OrganizationalUnit');
 const AppError = require('../Services/error-management').AppError;
 const handleError = require('../Services/error-management').handleError;
@@ -14,7 +15,7 @@ router.get('/', (req, res) => {
         ouId = +req.query['ou'];
         pupilId = +req.query['pupil'];
     }
-    Record.findAll({where: { UserId: req.authUser.id} })
+    Evaluation.findAll({where: { UserId: req.authUser.id} })
     .then(async allRecords => {
         if(ouId && pupilId){
             let records = [];
@@ -38,18 +39,22 @@ router.get('/:id', selectById, (req, res) => {
     res.status(200).send(req.selectedRecord);
 })
 
-router.post('/', (req, res) => {
-    //check if ou is in period
-    //check if pupil belongs to ou
+router.post('/', async (req, res) => {
+    
     delete req.body.id;
     req.body.UserId = req.authUser.id;
     if(req.query['ou'] && req.query['pupil']){
         try{
             let ouId = +req.query['ou'];
             let pupilId = +req.query['pupil'];
+
+            let constraintsOk = await checkPostConstraints(ouId, pupilId, req.authUser.id);
+            if(!constraintsOk){
+                throw new AppError(400, 'Evaluation Constraints');
+            }
             
             let record = { ... req.body, OrganizationalUnitId: ouId, PupilId: pupilId};
-            Record.create(record)
+            Evaluation.create(record)
             .then(createdRecord => {
                 res.status(201).send(outputFormatter(createdRecord));
             })
@@ -125,13 +130,13 @@ async function selectById(req, res, next) {
     if (isNaN(reqId)) {
         throw new AppError(400, 'Given id was not a number.');
     }
-    Record.findOne({ where: { id: reqId} })
+    Evaluation.findOne({ where: { id: reqId} })
         .then(async (record) => {
             if (record == null) {
                 throw new AppError(404, 'Not found');
             }
-            let belongsToUser = await recordBelongsToUser(record, req.authUser.id);
-            if(!belongsToUser){
+            let constraintsOk = await checkRecordConstraints(record, req.authUser.id);
+            if(!constraintsOk){
                 throw new AppError(404, 'Not found');
             }
             req.selectedRecord = record;
@@ -144,23 +149,40 @@ async function selectById(req, res, next) {
     });
 }
 
-//check if OU is in period
-async function recordBelongsToUser(record, userId){
+async function checkPostConstraints(ouId, pupilId, userId){
+    let ouConstraints = false;
+    let pupilConstraints = false;
+
+    ouConstraints = (checkOUConstraints(await OU.findOne({where: {id: ouId}}), userId));
+    let pupil = await Pupil.findOne({where: {id: pupilId, UserId: userId}});
+    pupilConstraints = await pupil.hasOrganizationalUnits(ouId);
+
+    return pupilConstraints && ouConstraints;
+}
+
+async function checkRecordConstraints(record, userId){
     let userHasPupil = null;
     let userHasOu = null;
     let recordBelongsToThisUser = null;
 
     recordBelongsToThisUser = userId == record.UserId;
     userHasPupil = (await Pupil.findOne({where: {id : record.PupilId, UserId: userId}})) != null;
-    //userHasOu = (await OU.findOne({where: {id: record.OrganizationalUnitId}})) != null; 
-    userHasOu = (OUBelongsToUser(await OU.findOne({where: {id: record.OrganizationalUnitId}})), userId);
+    userHasOu = (checkOUConstraints(await OU.findOne({where: {id: record.OrganizationalUnitId}}), userId));
     return (userHasPupil && userHasOu && recordBelongsToThisUser);
 }
 
-async function OUBelongsToUser(ou, userId) {
+async function checkOUConstraints(ou, userId) {
     let period = null;
     try {
         period = await Period.findOne({ where: { id: ou.PeriodId, UserId: userId } });
+        if(!period.active)
+            period = null;
+
+        let ouPeriod = ou.PeriodId;
+        let idActivePeriod = period.id;
+        if(ouPeriod != idActivePeriod)
+            period = null;
+
     } catch (err) {
         err.statusCode = 500;
         handleError(err, req, res);

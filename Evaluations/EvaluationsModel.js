@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = (sequelize, DataTypes) => {
-    const Records = sequelize.define('Record', {
+    const Evaluations = sequelize.define('Evaluation', {
         value : {
             type: DataTypes.STRING,
             allowNull: false
@@ -28,22 +28,22 @@ module.exports = (sequelize, DataTypes) => {
         }
     });
 
-    Records.associate = function(models) {
-        models.Record.belongsTo(models.User, {
+    Evaluations.associate = function(models) {
+        models.Evaluation.belongsTo(models.User, {
             foreignKey: {
                 allowNull: false
             }
         })
-        models.Record.belongsTo(models.Pupil, {
+        models.Evaluation.belongsTo(models.Pupil, {
             foreignKey: {
                 allowNull: false
             }
         });
-        models.Record.belongsTo(models.OrganizationalUnit, {
+        models.Evaluation.belongsTo(models.OrganizationalUnit, {
             foreignKey: {
                 allowNull: false
             }
         });
     }
-    return Records;
+    return Evaluations;
 }

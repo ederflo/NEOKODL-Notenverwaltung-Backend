@@ -149,6 +149,8 @@ router.patch('/AddToOU', (req, res) => {
                 res.status(204).send('Added Pupil to OU.');
             } catch (err) {
                 console.log(err);
+                err.statusCode = 404;
+                handleError(err, req, res);
             }
         })
         .catch(err => {

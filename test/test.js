@@ -1332,18 +1332,17 @@ describe('Testing Evaluations api/v1', function () {
 
     it(`EVA-Add Pupils to OUs: Step 1`, function (done) {
         request(app)
-            .patch(`api/v1/pupils/AddToOU?ou=${evaluationsOU1}&pupil=${evaluationsPupil1}`)
+            .patch(`/api/v1/pupils/AddToOU?ou=${evaluationsOU1}&pupil=${evaluationsPupil1}`)
             .set({ Authorization: token })
             .expect(204)
             .end((err, res) => {
-                console.log(res.status);
                 if (err) return done(err);
                 done();
             });
     });
     it(`EVA-Add Pupils to OUs: Step 2`, function (done) {
         request(app)
-            .patch(`api/v1/pupils/AddToOU?ou=${evaluationsOU2}&pupil=${evaluationsPupil2}`)
+            .patch(`/api/v1/pupils/AddToOU?ou=${evaluationsOU2}&pupil=${evaluationsPupil2}`)
             .set({ Authorization: token })
             .expect(204)
             .end((err, res) => {
@@ -1353,7 +1352,7 @@ describe('Testing Evaluations api/v1', function () {
     });
     it(`EVA-Add Pupils to OUs: Step 3`, function (done) {
         request(app)
-            .patch(`api/v1/pupils/AddToOU?ou=${evaluationsOU1}&pupil=${evaluationsPupil2}`)
+            .patch(`/api/v1/pupils/AddToOU?ou=${evaluationsOU1}&pupil=${evaluationsPupil2}`)
             .set({ Authorization: token })
             .expect(204)
             .end((err, res) => {
@@ -1405,9 +1404,9 @@ describe('Testing Evaluations api/v1', function () {
                 done();
             });
     });
-    it(`EVA-POST ONE SUCCESS - Evaluation for OU2:Pupil1`, function (done) {
+    it(`EVA-POST ONE SUCCESS - Evaluation for OU2:Pupil2`, function (done) {
         request(app)
-            .post(`/api/v1/evaluations?ou=${evaluationsOU2}&pupil=${evaluationsPupil1}`)
+            .post(`/api/v1/evaluations?ou=${evaluationsOU2}&pupil=${evaluationsPupil2}`)
             .set({ Authorization: token })
             .send(
                 {
@@ -1659,7 +1658,7 @@ describe('Testing Evaluations api/v1', function () {
     });
     //#endregion
     //#region Patch
-    it(`EVA-PUT SUCCESS`, function (done) {
+    it(`EVA-PATCH SUCCESS`, function (done) {
         createEvaluation((err, id) => {
             if (err)
                 return done(err);
@@ -1681,7 +1680,7 @@ describe('Testing Evaluations api/v1', function () {
                 });
         });
     });
-    it(`EVA-PUT SUCCESS - All values`, function (done) {
+    it(`EVA-PATCH SUCCESS - All values`, function (done) {
         createEvaluation((err, id) => {
             if (err)
                 return done(err);
@@ -1973,10 +1972,10 @@ function createEvaluation(callback) {
         )
         .expect(201)
         .end((err, res) => {
-            if (err) return done(err);
+            if (err)
+                assert.fail(err);
             if (!res.body.id)
                 assert.fail('Beforehand Evaluation generation failed!');
             callback(err, res.body.id);
-            done();
         });
 }

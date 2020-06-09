@@ -52,7 +52,7 @@ router.post('/', async (req, res) => {
 
             let constraintsOk = await checkPostConstraints(ouId, pupilId, req.authUser.id);
             if(!constraintsOk){
-                throw new AppError(400, 'Evaluation Constraints');
+                throw new AppError(400, 'Constraints');
             }
             
             let record = { ... req.body, OrganizationalUnitId: ouId, PupilId: pupilId};
@@ -104,6 +104,8 @@ function validateUserObjectForUpdate(req, res, next, fullUpdate) {
     delete compareRecord.UserId;
     delete compareRecord.updatedAt;
     delete compareRecord.createdAt;
+    delete compareRecord.OrganizationalUnitId;
+    delete compareRecord.PupilId;
 
     if (fullUpdate) {
         if (Object.keys(compareRecord).length != Object.keys(req.body).length) {

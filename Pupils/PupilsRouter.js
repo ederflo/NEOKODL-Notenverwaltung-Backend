@@ -157,6 +157,7 @@ router.patch('/AddToOU', (req, res) => {
             err.statusCode = 404;
             handleError(err, req, res);
         });
+
 });
 
 router.patch('/RemoveFromOU', (req, res) => {
@@ -181,6 +182,7 @@ router.patch('/RemoveFromOU', (req, res) => {
             err.statusCode = 404;
             handleError(err, req, res);
         });
+
 });
 router.patch('/:id', selectById, validatePartialPupil, doUpdate);
 

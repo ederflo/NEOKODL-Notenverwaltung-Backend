@@ -8,12 +8,12 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       validate: {
         min: {
-          args: [1],
-          msg: 'Weekday must be between 1-7!'
+          args: [0],
+          msg: 'Weekday must be between 0-6!'
         },
         max: {
-          args: [7],
-          msg: 'Weekday must be between 1-7!'
+          args: [6],
+          msg: 'Weekday must be between 0-6!'
         }
       }
     },

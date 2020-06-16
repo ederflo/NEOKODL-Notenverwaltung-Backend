@@ -1899,7 +1899,7 @@ describe(`Testing TimeSlots api/v1`, function () {
                 done();
             });
     });
-    it(`TimeSlot-POST ONE ERROR - Check weekday 1-7`, function (done) {
+    it(`TimeSlot-POST ONE ERROR - Check weekday 0-6`, function (done) {
         request(app)
             .post(`/api/v1/timeslot`)
             .set({ Authorization: token })

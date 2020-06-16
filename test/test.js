@@ -21,7 +21,11 @@ var token = 'Bearer ';
 var periodIdForOUs;
 var periodIdForTimeSlots;
 var ouIdForTimeSlots;
-
+var periodIdForEvaluations;
+var evaluationsOU1;
+var evaluationsOU2;
+var evaluationsPupil1;
+var evaluationsPupil2;
 
 before(done => {
     app.on('app_started', function () {
@@ -680,7 +684,7 @@ describe(`Testing Pupils api/v1`, function () {
             .end((err, res) => {
                 if (err) return done(err);
                 done();
-        });
+            });
     });
     it(`PPL-GET SUCCESS - One pupil`, function (done) {
         createRandomPupil((err, id) => {
@@ -720,32 +724,32 @@ describe(`Testing Pupils api/v1`, function () {
     });
     it('PPL-POST SUCCESS - create pupil', function (done) {
         request(app)
-        .post('/api/v1/pupils/')
-        .set({ Authorization: token })
-        .send({ 
-            username: "myPupil",
-            birthdt: "2020-03-26",
-            firstname: "fnPupil",
-            lastname: "lnPupil",
-            mail: "mypupil@mail.com" 
-        })
-        .expect(201)
-        .end((err, res) => {
-            if (err) return done(err);
-            done();
-        });
+            .post('/api/v1/pupils/')
+            .set({ Authorization: token })
+            .send({
+                username: "myPupil",
+                birthdt: "2020-03-26",
+                firstname: "fnPupil",
+                lastname: "lnPupil",
+                mail: "mypupil@mail.com"
+            })
+            .expect(201)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
     });
 
     it(`PPL-POST ERROR - Already exists`, function (done) {
         request(app)
             .post('/api/v1/pupils/')
             .set({ Authorization: token })
-            .send({ 
+            .send({
                 username: "myPupil",
                 birthdt: "2020-03-26",
                 firstname: "fnPupil",
                 lastname: "lnPupil",
-                mail: "mypupil@mail.com" 
+                mail: "mypupil@mail.com"
             })
             .expect(400)
             .end((err, res) => {
@@ -757,7 +761,7 @@ describe(`Testing Pupils api/v1`, function () {
         request(app)
             .post('/api/v1/pupils/')
             .set({ Authorization: token })
-            .send({ 
+            .send({
                 myUser: "myPupil",
                 birthdt: "2020-03-26",
                 firstname: "fnPupil",
@@ -803,7 +807,7 @@ describe(`Testing Pupils api/v1`, function () {
                     birthdt: "2020-03-26",
                     firstname: "fnPupil",
                     lastname: "lnPupil",
-                    mail: "yypupil@mail.com" 
+                    mail: "yypupil@mail.com"
                 })
                 .expect(200)
                 .end((err, res) => {
@@ -822,7 +826,7 @@ describe(`Testing Pupils api/v1`, function () {
                 birthdt: "2020-03-26",
                 firstname: "fnPupil",
                 lastname: "lnPupil",
-                mail: "mypupil@mail.com" 
+                mail: "mypupil@mail.com"
             })
             .expect(400)
             .end((err, res) => {
@@ -842,7 +846,7 @@ describe(`Testing Pupils api/v1`, function () {
                     birthdt: "2020-03-26",
                     firstname: "fnPupil",
                     lastname: "lnPupil",
-                    mail: "mypupil@mail.com" 
+                    mail: "mypupil@mail.com"
                 })
                 .expect(400)
                 .end((err, res) => {
@@ -1019,7 +1023,7 @@ describe(`Testing Pupils api/v1`, function () {
 
 
 describe(`Testing OrganizationalUnits api/v1`, function () {
-    
+
     it(`OU-Create Period for OUs`, function (done) {
         createPeriod((err, id) => {
             if (err)
@@ -1030,9 +1034,19 @@ describe(`Testing OrganizationalUnits api/v1`, function () {
     });
 
     //#region Get
-    it(`OU-GET SUCCESS - All OrganizationalUnits`, function (done) {
+    it(`OU-GET SUCCESS - All OrganizationalUnits of active Period`, function (done) {
         request(app)
             .get('/api/v1/ou')
+            .set({ Authorization: token })
+            .expect(200)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`OU-GET SUCCESS - All OrganizationalUnits of given Period`, function (done) {
+        request(app)
+            .get(`/api/v1/ou?periodId=${periodIdForOUs}`)
             .set({ Authorization: token })
             .expect(200)
             .end((err, res) => {
@@ -1044,15 +1058,15 @@ describe(`Testing OrganizationalUnits api/v1`, function () {
         createOU((err, id) => {
             if (err)
                 return done(err);
-        request(app)
-            .get(`/api/v1/ou/${id}`)
-            .set({ Authorization: token })
-            .expect(200)
-            .end((err, res) => {
-                deleteOU(id);
-                if (err || res.body.id != id) return done(err);
-                done();
-            });
+            request(app)
+                .get(`/api/v1/ou/${id}`)
+                .set({ Authorization: token })
+                .expect(200)
+                .end((err, res) => {
+                    deleteOU(id);
+                    if (err || res.body.id != id) return done(err);
+                    done();
+                });
         });
     });
     it(`OU-GET ONE ERROR - One OrganizationalUnit; not found`, function (done) {
@@ -1274,6 +1288,526 @@ describe(`Testing OrganizationalUnits api/v1`, function () {
 
     deletePeriod(periodIdForOUs);
 });
+
+describe('Testing Evaluations api/v1', function () {
+    it(`EVA-Create Period for Evaluations`, function (done) {
+        createPeriod((err, id) => {
+            if (err)
+                return done(err);
+            periodIdForEvaluations = id;
+            done();
+        })
+    });
+    it(`EVA-Create First OU for Evaluations`, function (done) {
+        createOUForEvaluation((err, id) => {
+            if (err)
+                return done(err);
+            evaluationsOU1 = id;
+            done();
+        })
+    });
+    it(`EVA-Create Second OU for Evaluations`, function (done) {
+        createOUForEvaluation((err, id) => {
+            if (err)
+                return done(err);
+            evaluationsOU2 = id;
+            done();
+        })
+    });
+    it(`EVA-Create First Pupil for Evaluations`, function (done) {
+        createRandomPupil((err, id) => {
+            if (err)
+                return done(err);
+            evaluationsPupil1 = id;
+            done();
+        })
+    });
+    it(`EVA-Create Second Pupil for Evaluations`, function (done) {
+        createRandomPupil((err, id) => {
+            if (err)
+                return done(err);
+            evaluationsPupil2 = id;
+            done();
+        })
+    });
+
+    it(`EVA-Add Pupils to OUs: Step 1`, function (done) {
+        request(app)
+            .patch(`/api/v1/pupils/AddToOU?ou=${evaluationsOU1}&pupil=${evaluationsPupil1}`)
+            .set({ Authorization: token })
+            .expect(204)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`EVA-Add Pupils to OUs: Step 2`, function (done) {
+        request(app)
+            .patch(`/api/v1/pupils/AddToOU?ou=${evaluationsOU2}&pupil=${evaluationsPupil2}`)
+            .set({ Authorization: token })
+            .expect(204)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`EVA-Add Pupils to OUs: Step 3`, function (done) {
+        request(app)
+            .patch(`/api/v1/pupils/AddToOU?ou=${evaluationsOU1}&pupil=${evaluationsPupil2}`)
+            .set({ Authorization: token })
+            .expect(204)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+
+    //#region Post
+    it(`EVA-POST ONE SUCCESS - First Evaluation for OU1:Pupil1`, function (done) {
+        request(app)
+            .post(`/api/v1/evaluations?ou=${evaluationsOU1}&pupil=${evaluationsPupil1}`)
+            .set({ Authorization: token })
+            .send(
+                {
+                    value: "+",
+                    evaluatedOn: "2020-05-13",
+                    comment: "Super Kommentar",
+                    weight: 1,
+                    createdOn: "2020-05-14",
+                    modifiedOn: null
+                }
+            )
+            .expect(201)
+            .end((err, res) => {
+                deleteOU(res.body.id);
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`EVA-POST ONE SUCCESS - Second Evaluation for OU1:Pupil1`, function (done) {
+        request(app)
+            .post(`/api/v1/evaluations?ou=${evaluationsOU1}&pupil=${evaluationsPupil1}`)
+            .set({ Authorization: token })
+            .send(
+                {
+                    value: "~",
+                    evaluatedOn: "2020-05-13",
+                    comment: "Super Kommentar",
+                    weight: 1,
+                    createdOn: "2020-05-14",
+                    modifiedOn: null
+                }
+            )
+            .expect(201)
+            .end((err, res) => {
+                deleteOU(res.body.id);
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`EVA-POST ONE SUCCESS - Evaluation for OU2:Pupil2`, function (done) {
+        request(app)
+            .post(`/api/v1/evaluations?ou=${evaluationsOU2}&pupil=${evaluationsPupil2}`)
+            .set({ Authorization: token })
+            .send(
+                {
+                    value: "+",
+                    evaluatedOn: "2020-05-13",
+                    comment: "Super Kommentar",
+                    weight: 1,
+                    createdOn: "2020-05-14",
+                    modifiedOn: null
+                }
+            )
+            .expect(201)
+            .end((err, res) => {
+                deleteOU(res.body.id);
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`EVA-POST ONE ERROR - Wrong query: Pupil does not exist`, function (done) {
+        request(app)
+            .post(`/api/v1/evaluations?ou=${evaluationsOU2}&pupil=23`)
+            .set({ Authorization: token })
+            .send(
+                {
+                    value: "+",
+                    evaluatedOn: "2020-05-13",
+                    comment: "Super Kommentar",
+                    weight: 1,
+                    createdOn: "2020-05-14",
+                    modifiedOn: null
+                }
+            )
+            .expect(400)
+            .end((err, res) => {
+                deleteOU(res.body.id);
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`EVA-POST ONE ERROR - Wrong query parameters`, function (done) {
+        request(app)
+            .post(`/api/v1/evaluations?superParameterJaja=${evaluationsOU2}&pupil=${evaluationsPupil1}`)
+            .set({ Authorization: token })
+            .send(
+                {
+                    value: "+",
+                    evaluatedOn: "2020-05-13",
+                    comment: "Super Kommentar",
+                    weight: 1,
+                    createdOn: "2020-05-14",
+                    modifiedOn: null
+                }
+            )
+            .expect(400)
+            .end((err, res) => {
+                deleteOU(res.body.id);
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`EVA-POST ONE ERROR - Wrong agruments`, function (done) {
+        request(app)
+            .post(`/api/v1/evaluations?ou=${evaluationsOU2}&pupil=${evaluationsPupil1}`)
+            .set({ Authorization: token })
+            .send(
+                {
+                    note: "+",
+                    verteiltAm: "2020-05-13",
+                    kommentar: "Super Kommentar",
+                    gewicht: 1,
+                    erstelltAm: "2020-05-14",
+                    bearbeitetAm: null
+                }
+            )
+            .expect(400)
+            .end((err, res) => {
+                deleteOU(res.body.id);
+                if (err) return done(err);
+                done();
+            });
+    });
+    //#endregion
+    //#region Get
+    it(`EVA-GET SUCCESS - All Evaluations`, function (done) {
+        request(app)
+            .get('/api/v1/evaluations')
+            .set({ Authorization: token })
+            .expect(200)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+
+    it(`EVA-GET SUCCESS - All OrganizationalUnits with correct query string: OU1;Pupil1`, function (done) {
+        request(app)
+            .get(`/api/v1/evaluations??ou=${evaluationsOU1}&pupil=${evaluationsPupil1}`)
+            .set({ Authorization: token })
+            .expect(200)
+            .expect((res) => {
+                let arr = res.body;
+                if (!Array.isArray(arr) && arr.length != 2) {
+                    assert.fail('Wrong content length');
+                }
+            })
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`EVA-GET SUCCESS - All OrganizationalUnits with correct query string: OU2;Pupil1`, function (done) {
+        request(app)
+            .get(`/api/v1/evaluations??ou=${evaluationsOU2}&pupil=${evaluationsPupil1}`)
+            .set({ Authorization: token })
+            .expect(200)
+            .expect((res) => {
+                let arr = res.body;
+                if (!Array.isArray(arr) && arr.length != 1) {
+                    assert.fail('Wrong content length');
+                }
+            })
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`EVA-GET SUCCESS - One Evaluation`, function (done) {
+        createEvaluation((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .get(`/api/v1/evaluations/${id}`)
+                .set({ Authorization: token })
+                .expect(200)
+                .end((err, res) => {
+                    deleteEvaluation(id);
+                    if (err || res.body.id != id) return done(err);
+                    done();
+                });
+        });
+    });
+    it(`EVA-GET ONE ERROR - One Evaluation; not found`, function (done) {
+        let id = -1;
+        request(app)
+            .get(`/api/v1/evaluation/${id}`)
+            .set({ Authorization: token })
+            .expect(404)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    //#endregion
+    //#region Put
+    it(`EVA-PUT SUCCESS`, function (done) {
+        createEvaluation((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .put(`/api/v1/evaluations/${id}`)
+                .set({ Authorization: token })
+                .send(
+                    {
+                        value: "Neuer value",
+                        evaluatedOn: "2020-05-13",
+                        comment: "Super Kommentar Nummero dos",
+                        weight: 1,
+                        createdOn: "2020-05-14",
+                        modifiedOn : null
+                    }
+                )
+                .expect(200)
+                .end((err, res) => {
+                    deleteEvaluation(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    it(`EVA-PUT ERROR - Not found`, function (done) {
+        let id = -1;
+        request(app)
+            .put(`/api/v1/evaluations/${id}`)
+            .set({ Authorization: token })
+            .send(
+                {
+                    value: "Neuer value",
+                    evaluatedOn: "2020-05-13",
+                    comment: "Super Kommentar Nummero dos",
+                    weight: 1,
+                    createdOn: "2020-05-14",
+                    modifiedOn : null
+                }
+            )
+            .expect(404)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`EVA-PUT ERROR - Invalid property`, function (done) {
+        createEvaluation((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .put(`/api/v1/evaluations/${id}`)
+                .set({ Authorization: token })
+                .send({
+                    note: "+",
+                    verteiltAm: "2020-05-13",
+                    kommentar: "Super Kommentar",
+                    gewicht: 1,
+                    erstelltAm: "2020-05-14",
+                    bearbeitetAm: null
+                })
+                .expect(400)
+                .end((err, res) => {
+                    deleteEvaluation(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    it(`EVA-PUT ERROR - Too many arguments`, function (done) {
+        createEvaluation((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .put(`/api/v1/evaluations/${id}`)
+                .set({ Authorization: token })
+                .send(
+                    {
+                        value: "Neuer value",
+                        evaluatedOn: "2020-05-13",
+                        comment: "Super Kommentar Nummero dos",
+                        weight: 1,
+                        createdOn: "2020-05-14",
+                        modifiedOn : null,
+                        anfochZuViel: 'trotzdem nix'
+                    }
+                )
+                .expect(400)
+                .end((err, res) => {
+                    deleteEvaluation(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    //#endregion
+    //#region Patch
+    it(`EVA-PATCH SUCCESS`, function (done) {
+        createEvaluation((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .patch(`/api/v1/evaluations/${id}`)
+                .set({ Authorization: token })
+                .send(
+                    {
+                        value: "Neuer value",
+                        evaluatedOn: "2020-05-13",
+                        comment: "Super Kommentar Nummero dos"
+                    }
+                )
+                .expect(200)
+                .end((err, res) => {
+                    deleteEvaluation(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    it(`EVA-PATCH SUCCESS - All values`, function (done) {
+        createEvaluation((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .patch(`/api/v1/evaluations/${id}`)
+                .set({ Authorization: token })
+                .send(
+                    {
+                        value: "Neuer value",
+                        evaluatedOn: "2020-05-13",
+                        comment: "Super Kommentar Nummero dos",
+                        weight: 1,
+                        createdOn: "2020-05-14",
+                        modifiedOn : null
+                    }
+                )
+                .expect(200)
+                .end((err, res) => {
+                    deleteEvaluation(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    it(`EVA-PATCH ERROR - Invalid id`, function (done) {
+        let id = -1;
+        request(app)
+            .patch(`/api/v1/evaluations/${id}`)
+            .set({ Authorization: token })
+            .send(
+                {
+                    value: "Neuer value",
+                    evaluatedOn: "2020-05-13",
+                    comment: "Super Kommentar Nummero dos",
+                    weight: 1,
+                    createdOn: "2020-05-14",
+                    modifiedOn : null
+                }
+            )
+            .expect(404)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`EVA-PATCH ERROR - Invalid property`, function (done) {
+        createEvaluation((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .patch(`/api/v1/evaluations/${id}`)
+                .set({ Authorization: token })
+                .send({
+                    note: "+",
+                    verteiltAm: "2020-05-13",
+                    kommentar: "Super Kommentar"
+                })
+                .expect(400)
+                .end((err, res) => {
+                    deleteEvaluation(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    it(`EVA-PATCH ERROR - Too many arguments`, function (done) {
+        createEvaluation((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .patch(`/api/v1/evaluations/${id}`)
+                .set({ Authorization: token })
+                .send(
+                    {
+                        value: "Neuer value",
+                        evaluatedOn: "2020-05-13",
+                        comment: "Super Kommentar Nummero dos",
+                        weight: 1,
+                        createdOn: "2020-05-14",
+                        modifiedOn : null,
+                        anfochZuViel: 'trotzdem nix'
+                    }
+                )
+                .expect(400)
+                .end((err, res) => {
+                    deleteEvaluation(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    //#endregion
+    //#region Delete
+    it(`EVA-DELETE SUCCESS - One Evaluation`, function (done) {
+        createEvaluation((err, id) => {
+            if (err) {
+                return done(err);
+            }
+            request(app)
+                .delete(`/api/v1/evaluations/${id}`)
+                .set({ Authorization: token })
+                .expect(204)
+                .end((err, res) => {
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    it(`EVA-DELETE ERROR - Not found`, function (done) {
+        let id = -1;
+        request(app)
+            .delete(`/api/v1/evaluations/${id}`)
+            .set({ Authorization: token })
+            .expect(404)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+
+    deletePupil(evaluationsPupil1);
+    deletePupil(evaluationsPupil2);
+    deleteOU(evaluationsOU1);
+    deleteOU(evaluationsOU2);
+    deletePeriod(periodIdForEvaluations);
+})
 
 
 describe(`Testing TimeSlots api/v1`, function () {
@@ -1587,7 +2121,7 @@ function deleteUser(id) {
                 assert.fail(err);
         });
 }
-function deletePupil(id){
+function deletePupil(id) {
     request(app)
         .delete(`/api/v1/pupils/${id}`)
         .set({ Authorization: token })
@@ -1625,6 +2159,16 @@ function deleteTimeSlot(id) {
                 assert.fail(err);
         });
 }
+  
+function deleteEvaluation(id) {
+    request(app)
+        .delete(`/api/v1/evaluations/${id}`)
+        .set({ Authorization: token })
+        .end((err, res) => {
+            if (err)
+                assert.fail(err);
+        });
+}
 
 function createPeriod(callback, label) {
     let id;
@@ -1648,20 +2192,20 @@ function createPeriod(callback, label) {
             callback(err, res.body.id);
         });
 }
-function createRandomPupil(callback){
-    let random = "pupil"+ Math.floor(Math.random()*(99-4+1)+4);
+function createRandomPupil(callback) {
+    let random = "pupil" + Math.floor(Math.random() * (99 - 4 + 1) + 4);
     request(app)
         .post('/api/v1/pupils/')
         .set({ Authorization: token })
         .send({
             username: random,
             birthdt: "2020-03-26",
-            firstname: "fn"+random,
-            lastname: "ln"+random,
-            mail: random+"@mail.com"
+            firstname: "fn" + random,
+            lastname: "ln" + random,
+            mail: random + "@mail.com"
         })
         .end((err, res) => {
-            if(err){
+            if (err) {
                 assert.fail(err);
             }
             if (!res.body.id)
@@ -1690,13 +2234,13 @@ function createRandomUser(callback) {
 function createOU(callback, deletePeriodAfterCallback) {
     createPeriod((err, periodId) => {
         if (err)
-            return done(err);  
+            return done(err);
         request(app)
             .post('/api/v1/ou/')
             .set({ Authorization: token })
-            .send({ 
-                label: 'TestOU' + Math.floor(Math.random() * 1000), 
-                description: 'This is my test OU!' 
+            .send({
+                label: 'TestOU' + Math.floor(Math.random() * 1000),
+                description: 'This is my test OU!'
             })
             .end((err, res) => {
                 if (err)
@@ -1712,6 +2256,22 @@ function createOU(callback, deletePeriodAfterCallback) {
                 }
             });
     });
+}
+
+function createOUForEvaluation(callback) {
+    request(app)
+        .post(`/api/v1/ou`)
+        .set({ Authorization: token })
+        .send({
+            label: "Meine Klasse" + Math.floor(Math.random() * 1000),
+            description: "Das soll meine Klasse sein"
+        })
+        .end((err, res) => {
+            if (!res.body.id) {
+                assert.fail('OU creation failed');
+            }
+            callback(err, res.body.id);
+        });
 }
 
 function createTimeSlot(callback) {
@@ -1736,4 +2296,28 @@ function createTimeSlot(callback) {
                 deleteOU(ouId);
             });
     });
+}
+
+function createEvaluation(callback) {
+    request(app)
+        .post(`/api/v1/evaluations?ou=${evaluationsOU1}&pupil=${evaluationsPupil1}`)
+        .set({ Authorization: token })
+        .send(
+            {
+                value: "+",
+                evaluatedOn: "2020-05-13",
+                comment: "Super Kommentar",
+                weight: 1,
+                createdOn: "2020-05-14",
+                modifiedOn: null
+            }
+        )
+        .expect(201)
+        .end((err, res) => {
+            if (err)
+                assert.fail(err);
+            if (!res.body.id)
+                assert.fail('Beforehand Evaluation generation failed!');
+            callback(err, res.body.id);
+        });
 }

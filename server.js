@@ -40,6 +40,7 @@ function defaultSetup() {
     const organizationalUnitsRouter = require('./organizationalUnits/OrganizationalUnitsRouter');
     const pupilsRouter = require('./Pupils/PupilsRouter');
     const timeSlotRouter = require('./timeSlots/TimeSlotRouter');
+    const evaluationsRouter = require('./Evaluations/EvaluationsRouter');
     const errorManager = require('./Services/error-management').errorHandler;
 
     const corsOptions = configManager.getCorsData();
@@ -54,6 +55,7 @@ function defaultSetup() {
     app.use('/api/v1/ou', organizationalUnitsRouter);
     app.use('/api/v1/pupils', pupilsRouter);
     app.use('/api/v1/timeslot', timeSlotRouter);
+    app.use('/api/v1/evaluations', evaluationsRouter);
     app.get('/secret', (req, res) => { res.status(200).send('Secret site') });
 
     const backendConfig = configManager.getBackendData();

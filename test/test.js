@@ -1284,7 +1284,7 @@ describe(`Testing TimeSlots api/v1`, function () {
             ouIdForTimeSlots = id;
             periodIdForTimeSlots = periodId;
             done();
-        }, false)
+        }, false);
     });
 
     //#region Get
@@ -1294,6 +1294,7 @@ describe(`Testing TimeSlots api/v1`, function () {
             .set({ Authorization: token })
             .expect(200)
             .end((err, res) => {
+                debugger
                 if (err) return done(err);
                 done();
             });
@@ -1518,7 +1519,7 @@ describe(`Testing TimeSlots api/v1`, function () {
                 .patch(`/api/v1/timeslot/${id}`)
                 .set({ Authorization: token })
                 .send({ wekday: 6})
-                .expect(200)
+                .expect(400)
                 .end((err, res) => {
                     deleteTimeSlot(id);
                     if (err) return done(err);
@@ -1534,7 +1535,7 @@ describe(`Testing TimeSlots api/v1`, function () {
                 .patch(`/api/v1/timeslot/${id}`)
                 .set({ Authorization: token })
                 .send({ name: 'test', weekday: 6, from: '10:30', till: '11:50', OrganizationalUnitId: ouIdForTimeSlots })
-                .expect(200)
+                .expect(400)
                 .end((err, res) => {
                     deleteTimeSlot(id);
                     if (err) return done(err);
@@ -1703,8 +1704,8 @@ function createOU(callback, deletePeriodAfterCallback) {
                 if (!res.body.id)
                     assert.fail('Beforehand OU generation failed!');
                 
-                if (deletePeriodAfterCallback == false) {
-                    callback(err, res.body.id, );
+                if (deletePeriodAfterCallback == true) {
+                    callback(err, res.body.id, periodId);
                     deletePeriod(periodId);
                 } else {
                     callback(err, res.body.id, periodId);

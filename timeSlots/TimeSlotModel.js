@@ -6,8 +6,16 @@ module.exports = (sequelize, DataTypes) => {
     weekday: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      min: 1,
-      max: 7
+      validate: {
+        min: {
+          args: [1],
+          msg: 'Weekday must be between 1-7!'
+        },
+        max: {
+          args: [7],
+          msg: 'Weekday must be between 1-7!'
+        }
+      }
     },
     from: {
       type: DataTypes.TIME,

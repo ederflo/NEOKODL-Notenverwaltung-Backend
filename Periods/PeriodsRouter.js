@@ -91,32 +91,31 @@ router.delete('/:id', selectById, (req, res) => {
 });
 
 router.patch('/activate/:id', selectById, (req, res) => {
-    if (req.selectedPeriod.archived === true) {
+    if (req.selectedPeriod.archived === true) 
         throw new AppError(400, 'Cannot activate an archived period.');
-    } else {
-        Period.findOne({ where: { active: true, UserId: req.authUser.id } })
-            .then(previouslyActivePeriod => {
-                if (req.selectedPeriod.id == previouslyActivePeriod.id) {
-                    throw new AppError(400, 'Period is already active.');
-                }
-                previouslyActivePeriod.update({ active: false });
 
-                req.selectedPeriod.update({ active: true })
-                    .then((activatedPeriod) => {
-                        res.status(200).json(outputFormatter(activatedPeriod));
-                    })
-                    .catch((err) => {
-                        err.statusCode = 500;
-                        err.userMessage = 'Something went wrong. Cannot change active period.';
-                        handleError(err, req, res);
-                        previouslyActivePeriod.update({ active: true });
-                    })
-            })
-            .catch((err) => {
-                err.statusCode = 500;
-                handleError(err, req, res);
-            })
-    }
+    Period.findOne({ where: { active: true, UserId: req.authUser.id } })
+        .then(previouslyActivePeriod => {
+            if (req.selectedPeriod.id == previouslyActivePeriod.id) {
+                throw new AppError(400, 'Period is already active.');
+            }
+            previouslyActivePeriod.update({ active: false });
+
+            req.selectedPeriod.update({ active: true })
+                .then((activatedPeriod) => {
+                    res.status(200).json(outputFormatter(activatedPeriod));
+                })
+                .catch((err) => {
+                    err.statusCode = 500;
+                    err.userMessage = 'Something went wrong. Cannot change active period.';
+                    handleError(err, req, res);
+                    previouslyActivePeriod.update({ active: true });
+                })
+        })
+        .catch((err) => {
+            err.statusCode = 500;
+            handleError(err, req, res);
+        })
 });
 
 function selectById(req, res, next) {

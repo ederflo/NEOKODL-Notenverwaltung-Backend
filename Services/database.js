@@ -12,6 +12,7 @@ const connect = async () => {
     A_OUPupil.associate(database.models);
     Pupil.associate(database.models);
     OrganizationalUnit.associate(database.models);
+    TimeSlot.associate(database.models);
     Evaluation.associate(database.models);
     await sequelize.sync({ force: true });
 };
@@ -24,10 +25,11 @@ const Pupil = sequelize.import('./../Pupils/PupilsModel');
 const OrganizationalUnit = sequelize.import('./../organizationalUnits/OrganizationalUnitsModel');
 const A_OUPupil = sequelize.import('./../Associations/PupilOUAssociation');
 const Evaluation = sequelize.import('./../Evaluations/EvaluationsModel');
+const TimeSlot = sequelize.import('../timeSlots/TimeSlotModel');
 
 const database = {
   sequelize: sequelize,
-  models: { User, Period, OrganizationalUnit, Pupil, A_OUPupil, Evaluation },
+  models: { User, Period, OrganizationalUnit, Pupil, A_OUPupil, Evaluation, TimeSlot },
   connect,
   model
 };

@@ -142,7 +142,6 @@ function validateOUObjectForUpdate(req, res, next, fullUpdate) {
     if (Object.keys(req.body).some(k => { return compareOU[k] == undefined; })) {
         throw new AppError(400, 'properties of object do not match');
     }
-    
     next();
 }
 function doUpdate(req, res) {

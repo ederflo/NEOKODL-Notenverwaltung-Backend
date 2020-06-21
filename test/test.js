@@ -19,12 +19,13 @@ var authUserToken2 = 'Bearer ';
 var token = 'Bearer ';
 
 var periodIdForOUs;
+var periodIdForTimeSlots;
+var ouIdForTimeSlots;
 var periodIdForEvaluations;
 var evaluationsOU1;
 var evaluationsOU2;
 var evaluationsPupil1;
 var evaluationsPupil2;
-
 
 before(done => {
     app.on('app_started', function () {
@@ -1809,6 +1810,308 @@ describe('Testing Evaluations api/v1', function () {
 })
 
 
+describe(`Testing TimeSlots api/v1`, function () {
+    it(`Create OU and Period for TimeSlots`, function (done) {
+        createOU((err, id, periodId) => {
+            if (err)
+                return done(err);
+            ouIdForTimeSlots = id;
+            periodIdForTimeSlots = periodId;
+            done();
+        }, false);
+    });
+
+    //#region Get
+    it(`TimeSlot-GET SUCCESS - All TimeSlots`, function (done) {
+        request(app)
+            .get('/api/v1/timeslot')
+            .set({ Authorization: token })
+            .expect(200)
+            .end((err, res) => {
+                debugger
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`TimeSlot-GET SUCCESS - All TimeSlots of given OU`, function (done) {
+        request(app)
+            .get(`/api/v1/timeslot?ouId=${ouIdForTimeSlots}`)
+            .set({ Authorization: token })
+            .expect(200)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`TimeSlot-GET ERROR - All TimeSlots of given OU - NOT FOUND`, function (done) {
+        let ouId = -1;
+        request(app)
+            .get(`/api/v1/timeslot?ouId=${ouId}`)
+            .set({ Authorization: token })
+            .expect(404)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`TimeSlot-GET SUCCESS - One TimeSlot`, function (done) {
+        createTimeSlot((err, id) => {
+            if (err)
+                return done(err);
+        request(app)
+            .get(`/api/v1/timeslot/${id}`)
+            .set({ Authorization: token })
+            .expect(200)
+            .end((err, res) => {
+                deleteTimeSlot(id);
+                if (err || res.body.id != id) return done(err);
+                done();
+            });
+        });
+    });
+    it(`TimeSlot-GET ONE ERROR - One TimeSlot not found`, function (done) {
+        let id = -1;
+        request(app)
+            .get(`/api/v1/timeslot/${id}`)
+            .set({ Authorization: token })
+            .expect(404)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    //#endregion
+    //#region Post
+    it(`TimeSlot-POST ONE SUCCESS - Create one`, function (done) {
+        request(app)
+            .post(`/api/v1/timeslot`)
+            .set({ Authorization: token })
+            .send({ 
+                weekday: 3, 
+                from: '11:30',
+                till: '11:31',
+                OrganizationalUnitId: ouIdForTimeSlots
+            })
+            .expect(201)
+            .end((err, res) => {
+                deleteTimeSlot(res.body.id);
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`TimeSlot-POST ONE ERROR - Check weekday 0-6`, function (done) {
+        request(app)
+            .post(`/api/v1/timeslot`)
+            .set({ Authorization: token })
+            .send({ 
+                weekday: 8,
+                from: '11:30',
+                till: '14:50',
+                OrganizationalUnitId: ouIdForTimeSlots
+            })
+            .expect(400)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`TimeSlot-POST ONE ERROR - Wrong agruments`, function (done) {
+        request(app)
+            .post(`/api/v1/timeslot`)
+            .set({ Authorization: token })
+            .send({ wekday: 6, from: '11:00', til: '12:00', OrganizationalUnitId: ouIdForTimeSlots })
+            .expect(400)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`TimeSlot-POST ONE ERROR - Wrong amount of arguments`, function (done) {
+        request(app)
+            .post(`/api/v1/timeslot`)
+            .set({ Authorization: token })
+            .send({ weekday: 6, from: '11:00' })
+            .expect(400)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    //#endregion
+    //#region Put
+    it(`TimeSlot-PUT SUCCESS`, function (done) {
+        createTimeSlot((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .put(`/api/v1/timeslot/${id}`)
+                .set({ Authorization: token })
+                .send({ weekday: 6, from: '10:30', till: '11:50', OrganizationalUnitId: ouIdForTimeSlots })
+                .expect(200)
+                .end((err, res) => {
+                    deleteTimeSlot(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    it(`TimeSlot-PUT ERROR - Not found`, function (done) {
+        let id = -1;
+        request(app)
+            .put(`/api/v1/timeslot/${id}`)
+            .set({ Authorization: token })
+            .send({ weekday: 6, from: '10:30', till: '11:50', OrganizationalUnitId: ouIdForTimeSlots })
+            .expect(404)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`TimeSlot-PUT ERROR - Invalid property`, function (done) {
+        createTimeSlot((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .put(`/api/v1/timeslot/${id}`)
+                .set({ Authorization: token })
+                .send({ wekday: 6, from: '10:30', til: '11:50', OrganizationalUnitId: ouIdForTimeSlots })
+                .expect(400)
+                .end((err, res) => {
+                    deleteTimeSlot(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    it(`TimeSlot-PUT ERROR - Too many arguments`, function (done) {
+        createTimeSlot((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .put(`/api/v1/timeslot/${id}`)
+                .set({ Authorization: token })
+                .send({ label: 'test', wewkday: 6, from: '10:30', till: '11:50', OrganizationalUnitId: ouIdForTimeSlots })
+                .expect(400)
+                .end((err, res) => {
+                    deleteTimeSlot(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    //#endregion
+    //#region Patch
+    it(`TimeSlot-Patch SUCCESS - Two values`, function (done) {
+        createTimeSlot((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .patch(`/api/v1/timeslot/${id}`)
+                .set({ Authorization: token })
+                .send({ weekday: 1, till: '18:50' })
+                .expect(200)
+                .end((err, res) => {
+                    deleteTimeSlot(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    it(`TimeSlot-PATCH SUCCESS - All values`, function (done) {
+        createTimeSlot((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .patch(`/api/v1/timeslot/${id}`)
+                .set({ Authorization: token })
+                .send({ weekday: 6, from: '10:30', till: '11:50', OrganizationalUnitId: ouIdForTimeSlots })
+                .expect(200)
+                .end((err, res) => {
+                    deleteTimeSlot(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    it(`TimeSlot-PATCH ERROR - Invalid id`, function (done) {
+        let id = -1;
+        request(app)
+            .patch(`/api/v1/timeslot/${id}`)
+            .set({ Authorization: token })
+            .send({ weekday: 6, from: '10:30', till: '11:50', OrganizationalUnitId: ouIdForTimeSlots })
+            .expect(404)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    it(`TimeSlot-PATCH ERROR - Invalid property`, function (done) {
+        createTimeSlot((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .patch(`/api/v1/timeslot/${id}`)
+                .set({ Authorization: token })
+                .send({ wekday: 6})
+                .expect(400)
+                .end((err, res) => {
+                    deleteTimeSlot(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    it(`TimeSlot-PATCH ERROR - Too many arguments`, function (done) {
+        createTimeSlot((err, id) => {
+            if (err)
+                return done(err);
+            request(app)
+                .patch(`/api/v1/timeslot/${id}`)
+                .set({ Authorization: token })
+                .send({ name: 'test', weekday: 6, from: '10:30', till: '11:50', OrganizationalUnitId: ouIdForTimeSlots })
+                .expect(400)
+                .end((err, res) => {
+                    deleteTimeSlot(id);
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    //#endregion
+    //#region Delete
+    it(`TimeSlot-DELETE SUCCESS - One TimeSlot`, function (done) {
+        createTimeSlot((err, id) => {
+            if (err) {
+                return done(err);
+            }
+            request(app)
+                .delete(`/api/v1/timeslot/${id}`)
+                .set({ Authorization: token })
+                .expect(204)
+                .end((err, res) => {
+                    if (err) return done(err);
+                    done();
+                });
+        });
+    });
+    it(`TimeSlot-DELETE ERROR - Not found`, function (done) {
+        let id = -1;
+        request(app)
+            .delete(`/api/v1/timeslot/${id}`)
+            .set({ Authorization: token })
+            .expect(404)
+            .end((err, res) => {
+                if (err) return done(err);
+                done();
+            });
+    });
+    //#endregion
+
+    deleteOU(ouIdForTimeSlots);
+    deletePeriod(periodIdForTimeSlots);
+});
+
+
 function deleteUser(id) {
     request(app)
         .delete(`/api/v1/users/${id}`)
@@ -1847,6 +2150,16 @@ function deleteOU(id) {
         });
 }
 
+function deleteTimeSlot(id) {
+    request(app)
+        .delete(`/api/v1/timeslot/${id}`)
+        .set({ Authorization: token })
+        .end((err, res) => {
+            if (err)
+                assert.fail(err);
+        });
+}
+  
 function deleteEvaluation(id) {
     request(app)
         .delete(`/api/v1/evaluations/${id}`)
@@ -1918,6 +2231,33 @@ function createRandomUser(callback) {
         });
 }
 
+function createOU(callback, deletePeriodAfterCallback) {
+    createPeriod((err, periodId) => {
+        if (err)
+            return done(err);
+        request(app)
+            .post('/api/v1/ou/')
+            .set({ Authorization: token })
+            .send({
+                label: 'TestOU' + Math.floor(Math.random() * 1000),
+                description: 'This is my test OU!'
+            })
+            .end((err, res) => {
+                if (err)
+                    assert.fail(err);
+                if (!res.body.id)
+                    assert.fail('Beforehand OU generation failed!');
+                
+                if (deletePeriodAfterCallback == true) {
+                    callback(err, res.body.id, periodId);
+                    deletePeriod(periodId);
+                } else {
+                    callback(err, res.body.id, periodId);
+                }
+            });
+    });
+}
+
 function createOUForEvaluation(callback) {
     request(app)
         .post(`/api/v1/ou`)
@@ -1934,24 +2274,26 @@ function createOUForEvaluation(callback) {
         });
 }
 
-function createOU(callback) {
-    createPeriod((err, id) => {
+function createTimeSlot(callback) {
+    createOU((err, ouId) => {
         if (err)
-            return done(err);
+            return done(err);  
         request(app)
-            .post('/api/v1/ou/')
+            .post('/api/v1/timeslot/')
             .set({ Authorization: token })
-            .send({
-                label: 'TestOU' + Math.floor(Math.random() * 1000),
-                description: 'This is my test OU!'
+            .send({ 
+                weekday: 3, 
+                from: '11:30',
+                till: '14:50',
+                OrganizationalUnitId: ouId
             })
             .end((err, res) => {
                 if (err)
                     assert.fail(err);
                 if (!res.body.id)
-                    assert.fail('Beforehand OU generation failed!');
+                    assert.fail('Beforehand TimeSlot generation failed!');
                 callback(err, res.body.id);
-                deletePeriod(id);
+                deleteOU(ouId);
             });
     });
 }

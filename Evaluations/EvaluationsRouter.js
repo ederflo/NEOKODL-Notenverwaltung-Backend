@@ -41,7 +41,6 @@ router.get('/:id', selectById, (req, res) => {
 })
 
 router.post('/', async (req, res) => {
-
     delete req.body.id;
     req.body.UserId = req.authUser.id;
     if (req.query['ou'] && req.query['pupil']) {
@@ -65,10 +64,15 @@ router.post('/', async (req, res) => {
                 });
         }
         catch (err) {
+            err.statusCode = 400;
             handleError(err, req, res);
         }
     } else {
-        res.status(400).send();
+        try {
+            throw new AppError(400, 'Wrong query parameters');
+        } catch (err) {
+            handleError(err, req, res);
+        }
     }
 });
 
@@ -152,16 +156,22 @@ async function checkPostConstraints(ouId, pupilId, userId) {
     let ouConstraints = false;
     let pupilConstraints = false;
 
-    ouConstraints = (await checkOUConstraints(await OU.findOne({ where: { id: ouId } }), userId));
-    let pupil = await Pupil.findOne({ where: { id: pupilId, UserId: userId } });
-    let OUs = await pupil.getOrganizationalUnits();
-    let ou = OUs.find((ou) => { if (ou.id === ouId) return ou; });
-    if (ou) {
-        pupilConstraints = true;
-        if (ou.A_PupilOU.locked) {
-            pupilConstraints = false;
+    try {
+        ouConstraints = (await checkOUConstraints(await OU.findOne({ where: { id: ouId } }), userId));
+        let pupil = await Pupil.findOne({ where: { id: pupilId, UserId: userId } });
+        let OUs = await pupil.getOrganizationalUnits();
+        let ou = OUs.find((ou) => { if (ou.id === ouId) return ou; });
+        if (ou) {
+            pupilConstraints = true;
+            if (ou.A_PupilOU.locked) {
+                pupilConstraints = false;
+            }
         }
+    } catch (err) {
+        handleError(err, req, res);
+        return;
     }
+    
     return pupilConstraints && ouConstraints;
 }
 
@@ -170,9 +180,15 @@ async function checkRecordConstraints(record, userId) {
     let userHasOu = null;
     let recordBelongsToThisUser = null;
 
-    recordBelongsToThisUser = userId == record.UserId;
-    userHasPupil = (await Pupil.findOne({ where: { id: record.PupilId, UserId: userId } })) != null;
-    userHasOu = (checkOUConstraints(await OU.findOne({ where: { id: record.OrganizationalUnitId } }), userId));
+    try {
+        recordBelongsToThisUser = userId == record.UserId;
+        userHasPupil = (await Pupil.findOne({ where: { id: record.PupilId, UserId: userId } })) != null;
+        userHasOu = (checkOUConstraints(await OU.findOne({ where: { id: record.OrganizationalUnitId } }), userId));
+    } catch (err) {
+        handleError(err, req, res);
+        return;
+    }
+
     return (userHasPupil && userHasOu && recordBelongsToThisUser);
 }
 

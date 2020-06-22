@@ -62,6 +62,7 @@ router.post('/', (req, res) => {
                     res.status(201).json(outputFormatter(createdPeriod));
                 })
                 .catch((err) => {
+                    err.statusCode = 400;
                     handleError(err, req, res);
                 });
         })

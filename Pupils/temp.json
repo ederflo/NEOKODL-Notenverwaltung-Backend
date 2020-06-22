@@ -1,0 +1,18 @@
+{
+    "ouId":1,
+    "ouLabel":"SYP 4BHIF",
+    "pupils": [
+        {
+            "id":1,
+            "firstname":"Hugo",
+            "Lastname":"Boss",
+            "username":"hBoss88"
+        },
+        {
+            "id":2,
+            "firstname":"Max",
+            "Lastname":"Mustermann",
+            "username":"mMuster22"
+        }
+    ]
+}

@@ -1,4 +1,4 @@
-const AppError = require('../Services/error-management').AppError;
+const AppError = require('../services/error-management').AppError;
 
 module.exports = (sequelize, DataTypes) => {
     const Pupils = sequelize.define('Pupil', {

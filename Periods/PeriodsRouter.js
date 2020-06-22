@@ -16,11 +16,11 @@ PATCH   |   /activate/:id
 
 const express = require('express');
 const router = express.Router();
-const db = require('../Services/database');
+const db = require('../services/database');
 const Period = db.model('Period');
-const AppError = require('../Services/error-management').AppError;
-const handleError = require('../Services/error-management').handleError;
-const outputFormatter = require('../Services/outPutFormatter');
+const AppError = require('../services/error-management').AppError;
+const handleError = require('../services/error-management').handleError;
+const outputFormatter = require('../services/outPutFormatter');
 
 router.get('/', (req, res) => {
     Period.findAll({ where: { UserId: req.authUser.id } })
@@ -106,11 +106,11 @@ router.patch('/activate/:id', selectById, (req, res) => {
                 .catch((err) => {
                     handleError(err, req, res);
                     previouslyActivePeriod.update({ active: true });
-                })
+                });
         })
         .catch((err) => {
             handleError(err, req, res);
-        })
+        });
 });
 
 function selectById(req, res, next) {
@@ -121,7 +121,7 @@ function selectById(req, res, next) {
     Period.findOne({ where: { id: reqId, UserId: req.authUser.id } })
         .then(period => {
             if (period == null) {
-                throw new AppError(404, 'Not found');
+                throw new AppError(404, 'No period found');
             }
             req.selectedPeriod = period;
             next();
@@ -173,6 +173,7 @@ function validatePeriodObjectForUpdate(req, res, next, fullUpdate) {
     req.body.user = user;
     next();
 }
+
 function doUpdate(req, res) {
     req.selectedPeriod.update(req.body)
         .then((period) => {
@@ -182,4 +183,21 @@ function doUpdate(req, res) {
             handleError(err, req, res);
         });
 }
+
+router.getPeriodByUserIdAndPeriodId = async (userId, periodId) => {
+    return await Period.findOne({ where: { id: periodId, UserId: userId } });
+}
+
+router.getActivePeriod = async (userId) => {
+    return await Period.findOne({ where: { UserId: userId, active: true } });
+}
+
+router.getActivePeriodId = async (userId) => {
+    let result = null;
+    let period = await router.getActivePeriod(userId);
+    if (period)
+        result = period.id;
+    return result;
+}
+
 module.exports = router;

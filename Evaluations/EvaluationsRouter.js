@@ -33,7 +33,6 @@ router.get('/', (req, res) => {
             }
         })
         .catch(err => {
-            err.statusCode = 500;
             handleError(err, req, res);
         })
 });
@@ -66,7 +65,6 @@ router.post('/', async (req, res) => {
                 });
         }
         catch (err) {
-            err.statusCode = 400;
             handleError(err, req, res);
         }
     } else {
@@ -92,7 +90,6 @@ router.delete('/:id', selectById, (req, res) => {
             res.status(204).send();
         })
         .catch((err) => {
-            err.statusCode = 500;
             handleError(err, req, res);
         });
 });
@@ -124,7 +121,6 @@ function doUpdate(req, res) {
             res.status(200).json(record);
         })
         .catch((err) => {
-            err.statusCode = 500;
             handleError(err, req, res);
         });
 }
@@ -147,7 +143,6 @@ async function selectById(req, res, next) {
             next();
         })
         .catch(err => {
-            err.statusCode = 404;
             handleError(err, req, res);
             return;
         });

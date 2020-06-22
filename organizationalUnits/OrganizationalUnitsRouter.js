@@ -50,7 +50,6 @@ router.get('/', async (req, res) => {
             res.status(200).json(outputFormatter(ous));
         })
         .catch((err) => {
-            err.statusCode = 500;
             handleError(err, req, res);
         });
 });
@@ -92,7 +91,7 @@ router.delete('/:id', selectById, (req, res) => {
             res.status(204).send();
         })
         .catch((err) => {
-            err.statusCode = 500;
+            err.statusCode = 404;
             handleError(err, req, res);
         });
 });
@@ -150,7 +149,6 @@ function doUpdate(req, res) {
             res.status(200).json(outputFormatter(ou));
         })
         .catch((err) => {
-            err.statusCode = 500;
             handleError(err, req, res);
         });
 }
@@ -160,8 +158,8 @@ async function getActivePeriodId(userId) {
     try {
         period = await Period.findOne({ where: { UserId: userId, active: true } });
     } catch(err) {
-        err.statusCode = 500;
         handleError(err, req, res);
+        return;
     }
     return period.id;
 }
@@ -171,8 +169,8 @@ async function OUBelongsToUser(ou, userId) {
     try {
         period = await Period.findOne({ where: { id: ou.PeriodId, UserId: userId } });
     } catch (err) {
-        err.statusCode = 500;
         handleError(err, req, res);
+        return;
     }
     return period != null;
 }
@@ -182,8 +180,8 @@ async function periodBelongsToUser(periodId, userId) {
     try {
         period = await Period.findOne({ where: { id: periodId, UserId: userId } });
     } catch(err) {
-        err.statusCode = 500;
         handleError(err, req, res);
+        return;
     }
     return period != null;
 }

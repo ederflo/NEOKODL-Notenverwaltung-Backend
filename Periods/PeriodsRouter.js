@@ -62,14 +62,12 @@ router.post('/', (req, res) => {
                     res.status(201).json(outputFormatter(createdPeriod));
                 })
                 .catch((err) => {
-                    err.statusCode = 400;
                     handleError(err, req, res);
                 });
         })
         .catch((err) => {
-            err.statusCode = 400;
             handleError(err, req, res);
-        })
+        });
 });
 
 router.put('/:id', selectById, validateCompletePeriod, doUpdate);
@@ -85,7 +83,6 @@ router.delete('/:id', selectById, (req, res) => {
             res.status(204).send();
         })
         .catch((err) => {
-            err.statusCode = 500;
             handleError(err, req, res);
         });
 });
@@ -106,14 +103,11 @@ router.patch('/activate/:id', selectById, (req, res) => {
                     res.status(200).json(outputFormatter(activatedPeriod));
                 })
                 .catch((err) => {
-                    err.statusCode = 500;
-                    err.userMessage = 'Something went wrong. Cannot change active period.';
                     handleError(err, req, res);
                     previouslyActivePeriod.update({ active: true });
                 })
         })
         .catch((err) => {
-            err.statusCode = 500;
             handleError(err, req, res);
         })
 });
@@ -132,7 +126,6 @@ function selectById(req, res, next) {
             next();
         })
         .catch(err => {
-            err.statusCode = 404;
             handleError(err, req, res);
             return;
         });
@@ -185,7 +178,6 @@ function doUpdate(req, res) {
             res.status(200).json(outputFormatter(period));
         })
         .catch((err) => {
-            err.statusCode = 500;
             handleError(err, req, res);
         });
 }

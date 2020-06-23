@@ -23,6 +23,7 @@ const Period = db.model('Period');
 const AppError = require('../Services/error-management').AppError;
 const handleError = require('../Services/error-management').handleError;
 const outputFormatter = require('../Services/outPutFormatter');
+const dataAccess = require('../services/dataAccess');
 
 router.get('/', async (req, res) => {
     let timeSlots = [];

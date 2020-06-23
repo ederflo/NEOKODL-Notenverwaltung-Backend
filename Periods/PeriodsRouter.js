@@ -173,6 +173,7 @@ function validatePeriodObjectForUpdate(req, res, next, fullUpdate) {
     req.body.user = user;
     next();
 }
+
 function doUpdate(req, res) {
     req.selectedPeriod.update(req.body)
         .then((period) => {

@@ -61,13 +61,18 @@ router.get('/', (req, res) => {
         });
 });
 
-router.get('/getCurrent', async (req, res) => {
+router.get('/current', async (req, res) => {
     try {
+        let response = { }
         let ou = await dataAccess.getCurrentOU(req.authUser.id);
         if (ou) {
             let pupils = await ou.getPupils();
-            if (pupils)
-                res.status(200).send(outPutFormatter(pupils));
+            if (pupils) {
+                response.ouId = ou.id;
+                response.pupils = pupils;
+                res.status(200).send(response);
+                return;
+            }
         }
         res.status(204).send();
     } catch (err) {

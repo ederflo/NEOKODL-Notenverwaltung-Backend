@@ -16,14 +16,13 @@ DELETE  |   /:id
 
 const express = require('express');
 const router = express.Router();
-const db = require('../services/database');
+const db = require('../Services/database');
 const TimeSlot = db.model('TimeSlot');
 const OU = db.model('OrganizationalUnit');
 const Period = db.model('Period');
-const AppError = require('../services/error-management').AppError;
-const handleError = require('../services/error-management').handleError;
-const outputFormatter = require('../services/outPutFormatter');
-const periodsRouter = require('../periods/PeriodsRouter');
+const AppError = require('../Services/error-management').AppError;
+const handleError = require('../Services/error-management').handleError;
+const outputFormatter = require('../Services/outPutFormatter');
 
 router.get('/', async (req, res) => {
     let timeSlots = [];
@@ -191,13 +190,6 @@ async function OUBelongsToUser(ou, userId) {
 async function timeSlotBelongsToUser(ouId, userId) {
     let ou = await OU.findOne({ where: { id: ouId }});
     return (await Period.findOne({ where: { id: ou.PeriodId, UserId: userId } })) != null;
-}
-
-router.getCurrentTimeSlot = async (userId) => {
-    let period = await periodsRouter.getActivePeriod(userId);
-    if (!period)
-        throw new AppError(404, "No active period!");
-    console.log(period);
 }
 
 module.exports = router;

@@ -20,13 +20,12 @@ DELETE  |   /:id
 
 const express = require('express');
 const router = express.Router();
-const db = require('../services/database');
+const db = require('../Services/database');
 const Pupil = db.model('Pupil');
 const OU = db.model('OrganizationalUnit');
-const AppError = require('../services/error-management').AppError;
-const handleError = require('../services/error-management').handleError;
-const outPutFormatter = require('../services/outPutFormatter');
-const organizationalUnitsRouter = require('../organizationalUnits/OrganizationalUnitsRouter');
+const AppError = require('../Services/error-management').AppError;
+const handleError = require('../Services/error-management').handleError;
+const outPutFormatter = require('../Services/outPutFormatter');
 
 //get period based
 
@@ -59,17 +58,6 @@ router.get('/', (req, res) => {
             err.statusCode = 500;
             handleError(err, req, res);
         });
-});
-
-router.get('/getCurrent', async (req, res) => {
-    try {
-        let ou = await organizationalUnitsRouter.getCurrentOU(req.authUser.id);
-
-
-        res.status(200).send();
-    } catch (err) {
-        handleError(err, req, res);
-    }
 });
 
 router.get('/:id', selectById, (req, res) => {
@@ -257,7 +245,7 @@ function selectById(req, res, next) {
     Pupil.findOne({ where: { id: reqId, UserId: req.authUser.id } })
         .then(pupil => {
             if (pupil == null) {
-                throw new AppError(404, 'User not found');
+                throw new AppError(404, 'Not found');
             }
             req.selectedPupil = pupil;
             next();

@@ -1,5 +1,5 @@
 'use strict';
-const AppError = require('../services/error-management').AppError;
+const AppError = require('../Services/error-management').AppError;
 
 module.exports = (sequelize, DataTypes) => {
   var Period = sequelize.define('Period', {

@@ -16,13 +16,12 @@ DELETE  |   /:id
 
 const express = require('express');
 const router = express.Router();
-const db = require('../services/database');
+const db = require('../Services/database');
 const OU = db.model('OrganizationalUnit');
 const Period = db.model('Period');
-const AppError = require('../services/error-management').AppError;
-const handleError = require('../services/error-management').handleError;
-const outputFormatter = require('../services/outPutFormatter');
-const timeSlotRouter = require('../timeSlots/TimeSlotRouter');
+const AppError = require('../Services/error-management').AppError;
+const handleError = require('../Services/error-management').handleError;
+const outputFormatter = require('../Services/outPutFormatter');
 
 router.get('/', async (req, res) => {
     let periodId = req.query.periodId;
@@ -185,14 +184,6 @@ async function periodBelongsToUser(periodId, userId) {
         return;
     }
     return period != null;
-}
-
-router.getOUsByPeriodId = async (periodId, userId) => {
-    return await Period.findOne({ where: { id: periodId, UserId: userId } });
-}
-
-router.getCurrentOU = async (userId) => {
-    let timeSlot = await timeSlotRouter.getCurrentTimeSlot(userId);
 }
 
 module.exports = router;

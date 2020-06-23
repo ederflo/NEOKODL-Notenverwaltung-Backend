@@ -69,7 +69,7 @@ router.get('/current', async (req, res) => {
         if (!orderBy)
             orderBy = 'lastname';
         else if(!Pupil.rawAttributes[orderBy])
-            throw new AppError(400, `"${orderBy}" is not a valid orderBy word! Only fields of pupil allowed.`);{
+            throw new AppError(400, `"${orderBy}" is not a valid orderBy word! Only fields of pupil allowed.`);
                 
         if (!orderSequence)
             orderSequence = 'DESC'

@@ -40,8 +40,9 @@ router.get('/', async (req, res) => {
                 let ts = await getTimeSlotsOfOu(userId, ou)
                 timeSlots.push.apply(timeSlots, ts)
             }
+        } else {
+            timeSlots = await getTimeSlotsOfActivePeriod(req.authUser.id);
         }
-        timeSlots = await getTimeSlotsOfActivePeriod(req.authUser.id);
         res.status(200).json(timeSlots);
     } catch (err) {
         if (!err.statusCode) {

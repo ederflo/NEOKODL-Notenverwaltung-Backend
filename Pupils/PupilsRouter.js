@@ -26,6 +26,7 @@ const OU = db.model('OrganizationalUnit');
 const AppError = require('../Services/error-management').AppError;
 const handleError = require('../Services/error-management').handleError;
 const outPutFormatter = require('../Services/outPutFormatter');
+const dataAccess = require('../services/dataAccess');
 
 //get period based
 
@@ -60,6 +61,25 @@ router.get('/', (req, res) => {
         });
 });
 
+router.get('/current', async (req, res) => {
+    try {
+        let response = { }
+        let ou = await dataAccess.getCurrentOU(req.authUser.id);
+        if (ou) {
+            let pupils = await ou.getPupils();
+            if (pupils) {
+                response.ouId = ou.id;
+                response.pupils = pupils;
+                res.status(200).send(response);
+                return;
+            }
+        }
+        res.status(204).send();
+    } catch (err) {
+        handleError(err, req, res);
+    }
+});
+
 router.get('/:id', selectById, (req, res) => {
     res.status(200).json(outPutFormatter(req.selectedPupil));
 });
@@ -86,7 +106,7 @@ router.post('/', (req, res) => {
                 }
             }
             else {
-                res.status(201).json(outPutFormatter(pupil));
+                res.status(201).json(pupil);
             }
         })
         .catch((err) => {

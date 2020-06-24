@@ -11,6 +11,85 @@ const outputFormatter = require('../Services/outPutFormatter');
 
 //get period based
 
+/*
+    [
+        OU1Label : [
+            {Pupil: PupilObject, doublets: doubletEvaluations},
+            {Pupil: PupilObject, doublets: doubletEvaluations}
+        ],
+        OU2Label : [
+            {Pupil: PupilObject, doublets: doubletEvaluations},
+            {Pupil: PupilObject, doublets: doubletEvaluations}
+        ]
+    ]
+*/
+
+/*
+    [
+        OU1Label : [
+            {Pupil: PupilObject, doublets: doubletEvaluations},
+            {Pupil: PupilObject, doublets: doubletEvaluations}
+        ],
+        OU2Label : [
+            {Pupil: PupilObject, doublets: doubletEvaluations},
+            {Pupil: PupilObject, doublets: doubletEvaluations}
+        ],
+        {
+            OU3Label: {
+                "username": [
+                    {
+                        pupil: PupilObject,
+                        doublets: [
+                            {evaluation1, evaluation2}
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+*/
+
+router.get('/findDoublets', async (req, res) => {
+    let returnValues = [];
+
+    try {
+        let allEvals = await Evaluation.findAll({ where: { UserId: req.authUser.id } });
+        for (let eva of allEvals) {
+            for (let eva2 of allEvals) {
+                if (eva.id !== eva2.id && eva.PupilId === eva2.PupilId && eva.OrganizationalUnitId === eva2.OrganizationalUnitId) {
+                    if (eva.evaulautedOn === eva2.evaulautedOn && eva.value === eva2.value) {
+                        let pupil = await Pupil.findOne({ where: { id: eva.PupilId } });
+                        let ou = await OU.findOne({ where: { id: eva.OrganizationalUnitId } });
+                        let pupilUsername = pupil.username;
+
+                        let ouToAddTo = returnValues[ou.label];
+                        if(ouToAddTo){
+                            let pupilToAddTo = ouToAddTo[pupilUsername];
+                            if(pupilToAddTo){
+                                let obj = pupilToAddTo.find( element => element.pupil.username === pupil.username);
+                                if(obj){
+                                    obj.doublets.push({evaluation1: eva, evaluation2: eva2});
+                                }
+                            }
+                        }
+                        else{
+                            let newReturnEntry = {};
+                            newReturnEntry[ou.label] = {};
+                            newReturnEntry[ou.label][pupilUsername] = [];
+                            newReturnEntry[ou.label][pupilUsername].push({pupil, doublets: [{evaluation1: eva, evaluation2: eva2}]});
+                            returnValues.push(newReturnEntry); 
+                        }
+                    }
+                }
+            }
+        }
+
+        res.status(200).send(returnValues);
+    }catch(err){
+        handleError(err, req, res);
+    }
+});
+
 router.get('/', (req, res) => {
     var ouId, pupilId;
     if (req.query['ou'] && req.query['pupil']) {

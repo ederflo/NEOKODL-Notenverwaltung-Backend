@@ -63,10 +63,23 @@ router.get('/', (req, res) => {
 
 router.get('/current', async (req, res) => {
     try {
+        let orderBy = req.query['orderBy'];
+        let orderSequence = req.query['orderSequence'];
+
+        if (!orderBy)
+            orderBy = 'lastname';
+        else if(!Pupil.rawAttributes[orderBy])
+            throw new AppError(400, `"${orderBy}" is not a valid orderBy word! Only fields of pupil allowed.`);
+                
+        if (!orderSequence)
+            orderSequence = 'DESC'
+        else if (!['DESC', 'ASC'].includes(orderSequence))
+            throw new AppError(400, 'OrderSequence is not valid! Use "DESC" or "ASC".');
+
         let response = { }
         let ou = await dataAccess.getCurrentOU(req.authUser.id);
         if (ou) {
-            let pupils = await ou.getPupils();
+            let pupils = await ou.getPupils({ order: [[orderBy, orderSequence]]});
             if (pupils) {
                 response.ouId = ou.id;
                 response.pupils = pupils;

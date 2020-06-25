@@ -146,6 +146,8 @@ async function createTimeSlot(req, res, timeSlot) {
             if(objectHelper.isTimeSlotValid(timeSlots, timeSlot))
                 throw new AppError(400, 'TimeSlots cannot be overlapping');
     } catch(err) {
+        if (!err.statusCode)
+            err.statusCode = 400;
         handleError(err, req, res);
         return;
     }

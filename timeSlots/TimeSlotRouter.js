@@ -24,6 +24,7 @@ const AppError = require('../Services/error-management').AppError;
 const handleError = require('../Services/error-management').handleError;
 const outputFormatter = require('../Services/outPutFormatter');
 const dataAccess = require('../services/dataAccess');
+const objectHelper = require('../Services/objectHelper');
 
 router.get('/', async (req, res) => {
     let timeSlots = [];
@@ -37,8 +38,8 @@ router.get('/', async (req, res) => {
                 throw new AppError(404, 'OU not found!');
             }
             if (await OUBelongsToUser(ou, userId)) {
-                let ts = await getTimeSlotsOfOu(userId, ou)
-                timeSlots.push.apply(timeSlots, ts)
+                let ts = await getTimeSlotsOfOu(userId, ou);
+                timeSlots.push.apply(timeSlots, ts);
             }
         } else {
             timeSlots = await getTimeSlotsOfActivePeriod(req.authUser.id);
@@ -65,7 +66,7 @@ router.post('/', async (req, res) => {
 router.post('/:id', async (req, res) => {
     delete req.body.id;
     let ouId = parseInt(req.params.id);
-    var timeSlot = req.body;
+    let timeSlot = req.body;
     timeSlot.OrganizationalUnitId = ouId;
     await createTimeSlot(req, res, timeSlot);
 });
@@ -130,6 +131,25 @@ async function selectById(req, res, next) {
 }
 
 async function createTimeSlot(req, res, timeSlot) {
+    let timeSlots = undefined;
+    let ou; 
+    try {
+        ou = await dataAccess.getOUById(timeSlot.OrganizationalUnitId);
+        if (!ou)
+            throw new AppError(404, 'Given OU could not be found');
+
+        if (!await dataAccess.OUBelongsToUser(ou, req.authUser.id))
+            throw new AppError(404, 'Given OU could not be found');
+
+        timeSlots = await dataAccess.getTimeSlotsByOUId(ou.id);
+        if (timeSlots && timeSlots.length > 0)
+            if(objectHelper.isTimeSlotValid(timeSlots, timeSlot))
+                throw new AppError(400, 'TimeSlots cannot be overlapping');
+    } catch(err) {
+        handleError(err, req, res);
+        return;
+    }
+
     TimeSlot.create(timeSlot)
         .then((createdTimeSlot) => {
             res.status(201).json(outputFormatter(createdTimeSlot));

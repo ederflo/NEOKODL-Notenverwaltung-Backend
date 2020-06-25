@@ -2,6 +2,7 @@ const dataAccess = {}
 
 const AppError = require('../Services/error-management').AppError;
 const db = require('../Services/database');
+const objectHelper = require('./objectHelper');
 const Period = db.model('Period');
 const OU = db.model('OrganizationalUnit');
 const Pupil = db.model('Pupil');
@@ -27,6 +28,14 @@ dataAccess.getOUsByPeriodId = async (periodId) => {
     return await OU.findAll({ where: { PeriodId: periodId } });
 }
 
+dataAccess.getOUById = async (ouId) => {
+    return await OU.findOne({ where: {id: ouId } });
+}
+
+dataAccess.OUBelongsToUser = async (ou, userId) => {
+    return (await Period.findOne({ where: { id: ou.PeriodId, UserId: userId } })) != null;
+}
+
 dataAccess.getCurrentOU = async (userId) => {
     let result = null;
     let ou = null;
@@ -39,46 +48,24 @@ dataAccess.getCurrentOU = async (userId) => {
 dataAccess.getCurrentTimeSlot = async (userId) => {
     let currentTimeSlot = undefined;
     let cntOu = 0;
-    let cntTs = 0;
-    let currentDate = new Date();
     let period = await dataAccess.getActivePeriod(userId);
     if (!period)
         throw new AppError(404, "No active period!");
+
     let ous = await dataAccess.getOUsByPeriodId(period.id, userId);
     if (!ous || ous.length <= 0)
         throw new AppError(404, "No OUs found!");
+
     while (cntOu < ous.length && !currentTimeSlot) {
         let timeSlots = await dataAccess.getTimeSlotsByOUId(ous[cntOu].id);
-        while (cntTs < timeSlots.length && !currentTimeSlot) {
-            if (timeSlots[cntTs].weekday == currentDate.getDay()) {
-                if ((getMinutesOfUTCDate(timeSlots[cntTs].from) <= getMinutesOfDate(currentDate)) &&
-                (getMinutesOfUTCDate(timeSlots[cntTs].till) > getMinutesOfDate(currentDate))) {
-                    currentTimeSlot = timeSlots[cntTs];
-                }
-            }
-            if (!currentTimeSlot)
-                cntTs++;
-        }
-        if (!currentTimeSlot) {
-            cntOu++;
-            cntTs = 0;
-        }
+        currentTimeSlot = objectHelper.getTimeSlotAvailable(timeSlots);
+        cntOu++;
     }
     return currentTimeSlot;
 }
 
 dataAccess.getTimeSlotsByOUId = async (ouId) => {
     return await TimeSlot.findAll({ where: {OrganizationalUnitId: ouId}});
-}
-
-
-
-function getMinutesOfDate(date) {
-    return 60*date.getHours() + date.getMinutes();
-}
-
-function getMinutesOfUTCDate(date) {
-    return 60*date.getUTCHours() + date.getUTCMinutes();
 }
 
 module.exports = dataAccess;

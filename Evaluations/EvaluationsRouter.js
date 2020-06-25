@@ -11,6 +11,72 @@ const outputFormatter = require('../Services/outPutFormatter');
 
 //get period based
 
+/*
+Object structure of returned Object for doublets
+{
+    OU3Label: {
+                "username": [
+                    {
+                        pupil: PupilObject,
+                        doublets: [
+                            {evaluation1, evaluation2}
+                        ]
+                    }
+                ]
+            }
+}
+*/
+
+router.get('/findDoublets', async (req, res) => {
+    let returnValues = {};
+
+    try {
+        let allEvals = await Evaluation.findAll({ where: { UserId: req.authUser.id } });
+        for (let eva of allEvals) {
+            for (let eva2 of allEvals) {
+                if (eva.id !== eva2.id && eva.PupilId === eva2.PupilId && eva.OrganizationalUnitId === eva2.OrganizationalUnitId) {
+                    if (eva.evaulautedOn === eva2.evaulautedOn && eva.value === eva2.value) {
+                        let pupil = await Pupil.findOne({ where: { id: eva.PupilId } });
+                        let ou = await OU.findOne({ where: { id: eva.OrganizationalUnitId } });
+                        let pupilUsername = pupil.username;
+                        let ouToAddTo = returnValues[ou.label];
+                        if (ouToAddTo) {
+                            let pupilToAddTo = ouToAddTo[pupilUsername];
+                            if (pupilToAddTo) {
+                                let obj = pupilToAddTo.find(element => element.pupil.username === pupil.username);
+                                if (obj) {
+                                    let checkArray = [eva.id, eva2.id];
+                                    let idx = 0;
+                                    let alreadyContained = false;
+                                    do{
+                                        alreadyContained = obj.doublets.find( (element) => checkArray.includes(element.evaluation1.id) && checkArray.includes(element.evaluation2.id));
+                                        idx++;
+                                    }while(!alreadyContained && idx < obj.doublets.length);
+                                    if(!alreadyContained)
+                                        obj.doublets.push({ evaluation1: eva, evaluation2: eva2 });
+                                }
+                            }
+                            else {
+                                returnValues[ou.label][pupilUsername] = [{ pupil, doublets: [{ evaluation1: eva, evaluation2: eva2 }]}];
+                            }
+                        }
+                        else {
+                            let newReturnEntry = {};
+                            newReturnEntry[pupil.username] = [];
+                            newReturnEntry[pupil.username].push({ pupil, doublets: [{ evaluation1: eva, evaluation2: eva2 }] });
+                            returnValues[ou.label] = newReturnEntry;
+                        }
+                    }
+                }
+            }
+        }
+
+        res.status(200).send(returnValues);
+    } catch (err) {
+        handleError(err, req, res);
+    }
+});
+
 router.get('/', (req, res) => {
     var ouId, pupilId;
     if (req.query['ou'] && req.query['pupil']) {

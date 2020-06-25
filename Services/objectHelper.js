@@ -12,9 +12,6 @@ objectHelper.isTimeSlotValid = (timeSlots, timeSlot) => {
     let cntTs = 0;
     while (cntTs < timeSlots.length && !currentTimeSlot) {
         if (timeSlots[cntTs].weekday == timeSlot.weekday) {
-            console.log(getMinutesOfUTCDate(timeSlots[cntTs].from));
-            console.log(getMinutesOfUTCDate(timeSlots[cntTs].till));
-            console.log(fromMins);
             if ((getMinutesOfUTCDate(timeSlots[cntTs].from) <= fromMins) &&
             (getMinutesOfUTCDate(timeSlots[cntTs].till) > fromMins)) {
                 currentTimeSlot = timeSlots[cntTs];

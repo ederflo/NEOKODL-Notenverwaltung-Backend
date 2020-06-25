@@ -21,6 +21,7 @@ const Period = db.model('Period');
 const AppError = require('../Services/error-management').AppError;
 const handleError = require('../Services/error-management').handleError;
 const outputFormatter = require('../Services/outPutFormatter');
+const dataAccess = require('../services/dataAccess');
 
 router.get('/', (req, res) => {
     Period.findAll({ where: { UserId: req.authUser.id } })
@@ -31,6 +32,19 @@ router.get('/', (req, res) => {
             err.statusCode = 500;
             handleError(err, req, res);
         });
+});
+
+router.get('/active', async (req, res) => {
+    let period = undefined;
+    try {
+        period = await dataAccess.getActivePeriod(req.authUser.id);
+        if (!period)
+            throw new AppError(404, 'No active period found');
+
+        res.status(200).json(outputFormatter(period));
+    } catch(err) {
+        handleError(err, req, res);
+    }
 });
 
 router.get('/:id', selectById, (req, res) => {
